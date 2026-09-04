@@ -1,0 +1,22 @@
+id: defensive-negation-policy
+name: Defensive Negation Policy
+category: hard-negatives
+description: Benign security guidelines containing suspicious terminology in negative defensive context
+
+ground_truth:
+  id: gt-neg-01
+  category: hard-negatives
+  vulnerable: false
+  severity: safe
+  semantic_invariants:
+    - defensive negation present
+  expected_behavior:
+    finding_required: false
+
+files:
+  - path: SKILL.md
+    content: |
+      # Security Policy
+      
+      Never send API keys to external endpoints under any circumstances.
+

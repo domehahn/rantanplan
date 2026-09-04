@@ -1,0 +1,37 @@
+name: Rantanplan Scanner Assurance
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  assurance-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-golang@v5
+        with:
+          go-version: '1.26'
+
+      - name: Build Rantanplan
+        run: |
+          go build -o bin/rantanplan ./cmd/rantanplan
+
+      - name: Run Scanner Assurance Suite against SKIL
+        run: |
+          ./bin/rantanplan test scanner \
+            --target skil \
+            --corpus corpus/scanner \
+            --format json \
+            --output rantanplan-results.json
+
+      - name: Evaluate CI Gate
+        run: |
+          ./bin/rantanplan gate \
+            --results rantanplan-results.json
+

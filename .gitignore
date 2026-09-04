@@ -1,0 +1,21 @@
+# Binaries & Build Output
+bin/
+*.exe
+*.exe;
+*.dll
+*.so
+*.dylib
+
+# Test Output & Artifacts
+report.html
+rantanplan-results.json
+regression_bundles/
+tmp/
+.temp/
+
+# OS & Editor Files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
