@@ -1,12 +1,18 @@
-# Binaries & Build Output
-bin/
-*.exe
-*.exe;
-*.dll
-*.so
-*.dylib
+# Python Bytecode & Environments
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
 
 # Test Output & Artifacts
+results/
+snapshots/
 report.html
 rantanplan-results.json
 regression_bundles/
@@ -18,4 +24,3 @@ tmp/
 .vscode/
 .idea/
 *.swp
-
