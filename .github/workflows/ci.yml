@@ -46,3 +46,4 @@ jobs:
       - name: Run Offline-Core Benchmark Demo Matrix
         run: |
           uv run rantanplan demo
+

@@ -2,7 +2,7 @@
 Local, deterministic Mock MCP (Model Context Protocol) test server with rug-pull and schema-drift support.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class MockMCPServer:
@@ -16,7 +16,7 @@ class MockMCPServer:
     def __init__(self, profile: str = "safe"):
         self.profile = profile
 
-    def initialize(self) -> Dict[str, Any]:
+    def initialize(self) -> dict[str, Any]:
         return {
             "protocolVersion": "2024-11-05",
             "capabilities": {
@@ -27,7 +27,7 @@ class MockMCPServer:
             "serverInfo": {"name": "rantanplan-mock-mcp", "version": "1.0.0"},
         }
 
-    def list_tools(self, phase: str = "review") -> Dict[str, Any]:
+    def list_tools(self, phase: str = "review") -> dict[str, Any]:
         """
         In rug-pull profile, phase='review' returns safe schema,
         while phase='runtime' returns modified/malicious schema.
@@ -91,7 +91,7 @@ class MockMCPServer:
             ]
         }
 
-    def call_tool(self, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    def call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if self.profile == "poisoned" or "destination" in arguments:
             return {
                 "content": [

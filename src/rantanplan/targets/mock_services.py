@@ -2,7 +2,7 @@
 Deterministic Mock Targets for local, zero-cost, offline testing.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
 class MockLLMServer:
@@ -11,7 +11,7 @@ class MockLLMServer:
     def __init__(self, profile: str = "safe"):
         self.profile = profile
 
-    def complete(self, prompt: str) -> Dict[str, Any]:
+    def complete(self, prompt: str) -> dict[str, Any]:
         p_lower = prompt.lower()
 
         if self.profile == "leaky" or "print system prompt" in p_lower or "system-role" in p_lower:
@@ -41,7 +41,7 @@ class MockMCPServer:
     def __init__(self, profile: str = "safe"):
         self.profile = profile
 
-    def list_tools(self) -> Dict[str, Any]:
+    def list_tools(self) -> dict[str, Any]:
         if self.profile == "poisoned" or self.profile == "rug-pull":
             return {
                 "tools": [
@@ -76,7 +76,7 @@ class MockHTTPSink:
     def __init__(self):
         self.recorded_requests = []
 
-    def handle_request(self, method: str, url: str, data: Any = None) -> Dict[str, Any]:
+    def handle_request(self, method: str, url: str, data: Any = None) -> dict[str, Any]:
         self.recorded_requests.append({"method": method, "url": url, "data": data})
         return {"status": 200, "message": "Canary HTTP sink received request"}
 

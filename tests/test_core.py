@@ -3,11 +3,11 @@ Unit and integration tests for Rantanplan Python framework.
 """
 
 from rantanplan.adapters.skil import SKILAdapter
-from rantanplan.adapters.skillspector import SkillSpectorAdapter
 from rantanplan.execution import SandboxRunner, create_temp_fixture_dir
 from rantanplan.ground_truth import GroundTruthEngine
 from rantanplan.metrics import MetricsCalculator
-from rantanplan.models import Outcome, RunProfile, TestCase as RantanplanTestCase
+from rantanplan.models import Outcome, RunProfile
+from rantanplan.models import TestCase as RantanplanTestCase
 
 
 def test_ground_truth_loader():

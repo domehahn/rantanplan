@@ -2,15 +2,15 @@
 Upstream Scanner Capability Drift Monitoring Engine.
 """
 
-from typing import Dict, Any, List
+from typing import Any
 
 
 class UpstreamDriftMonitor:
     """Monitors capability drift between snapshot versions."""
 
     @staticmethod
-    def compare_snapshots(previous: Dict[str, Any], current: Dict[str, Any]) -> Dict[str, Any]:
-        changes: List[Dict[str, Any]] = []
+    def compare_snapshots(previous: dict[str, Any], current: dict[str, Any]) -> dict[str, Any]:
+        changes: list[dict[str, Any]] = []
 
         prev_scanners = previous.get("scanners", {})
         curr_scanners = current.get("scanners", {})

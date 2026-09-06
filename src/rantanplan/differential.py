@@ -2,7 +2,8 @@
 Differential engine for cross-scanner benchmarking and capability matrix tables.
 """
 
-from typing import Dict, List, Any
+from typing import Any
+
 from rantanplan.models import NormalizedResult, Outcome, TestCase
 
 
@@ -10,14 +11,14 @@ class DifferentialEngine:
     """Generates cross-scanner differential matrix and capability coverage comparison tables."""
 
     @staticmethod
-    def generate_matrix(cases: List[TestCase], run_results: Dict[str, List[NormalizedResult]]) -> Dict[str, Any]:
+    def generate_matrix(cases: list[TestCase], run_results: dict[str, list[NormalizedResult]]) -> dict[str, Any]:
         """
         run_results is a map of scanner_name -> list of NormalizedResult.
         """
-        matrix: List[Dict[str, Any]] = []
+        matrix: list[dict[str, Any]] = []
 
         for case in cases:
-            row: Dict[str, Any] = {
+            row: dict[str, Any] = {
                 "case_id": case.id,
                 "title": case.title,
                 "domain": case.domain,

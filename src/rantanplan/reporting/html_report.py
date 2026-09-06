@@ -2,10 +2,10 @@
 Standalone offline HTML report generator.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
-def generate_html_report(matrix_data: Dict[str, Any], metrics_data: Dict[str, Any]) -> str:
+def generate_html_report(matrix_data: dict[str, Any], metrics_data: dict[str, Any]) -> str:
     scanners = matrix_data.get("scanners", [])
     matrix = matrix_data.get("matrix", [])
 

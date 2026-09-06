@@ -2,10 +2,10 @@
 Markdown report generator for differential matrices and capability metrics.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
-def generate_markdown_report(matrix_data: Dict[str, Any], metrics_data: Dict[str, Any]) -> str:
+def generate_markdown_report(matrix_data: dict[str, Any], metrics_data: dict[str, Any]) -> str:
     scanners = matrix_data.get("scanners", [])
     matrix = matrix_data.get("matrix", [])
 

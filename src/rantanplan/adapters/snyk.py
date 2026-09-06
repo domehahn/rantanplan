@@ -1,5 +1,5 @@
 """
-NVIDIA SkillSpector Target Adapter implementation for Rantanplan Universal Scanner Assurance v2.
+Snyk Agent Scan Adapter implementation for Rantanplan Universal Scanner Assurance v2.
 """
 
 import json
@@ -22,22 +22,22 @@ from rantanplan.models import (
 from rantanplan.target_hierarchy import ArtifactScannerAdapter
 
 
-class SkillSpectorAdapter(ArtifactScannerAdapter):
-    """Production adapter for NVIDIA SkillSpector."""
+class SnykAgentScanAdapter(ArtifactScannerAdapter):
+    """Production adapter for Snyk Agent Scan (Snyk CLI)."""
 
     def __init__(self, binary_path: str | None = None):
-        self._binary_path = binary_path or get_binary_path("skillspector")
-        self._version = discover_binary_version(self._binary_path) or "1.2.0"
+        self._binary_path = binary_path or get_binary_path("snyk")
+        self._version = discover_binary_version(self._binary_path) or "1.1200.0"
 
     def identity(self) -> ScannerIdentity:
         return ScannerIdentity(
-            name="skillspector",
+            name="snyk-agent",
             version=self._version,
             binary_path=self._binary_path,
         )
 
     def doctor(self) -> DoctorResult:
-        path = get_binary_path("skillspector")
+        path = get_binary_path("snyk")
         version = discover_binary_version(path)
         installed = version is not None
         return DoctorResult(
@@ -45,54 +45,52 @@ class SkillSpectorAdapter(ArtifactScannerAdapter):
             version=version or "0.0.0",
             path=path,
             supported=installed,
-            status_message="SkillSpector binary available" if installed else "SkillSpector binary not installed",
-            supported_range=">=1.0.0",
+            status_message="Snyk CLI available" if installed else "Snyk CLI not installed",
+            supported_range=">=1.1000.0",
         )
 
     def capabilities(self) -> list[str]:
         return [
-            "secret.exfiltration",
-            "prompt.injection",
-            "code.execution",
-            "artifact.obfuscation",
-            "mcp.tool-poisoning",
             "dependency.vulnerable",
+            "license.compliance",
+            "container.vulnerability",
+            "agent.misconfiguration",
         ]
 
     def supports(self, case: TestCase) -> bool:
-        return case.applicability.skillspector != ApplicabilityState.NOT_APPLICABLE
+        return case.applicability.snyk != ApplicabilityState.NOT_APPLICABLE
 
     def execute(self, case: TestCase, profile: RunProfile, fixture_dir: str) -> RawExecution:
         if profile.profile_type == TargetProfile.MOCK:
             return self._execute_mock(case, fixture_dir)
 
-        cmd = [self._binary_path, "inspect", "--path", fixture_dir, "--json"]
-        return ExecutionSandbox.run_command(cmd, timeout=profile.timeout_seconds, target_name="skillspector")
+        cmd = [self._binary_path, "code", "test", fixture_dir, "--json"]
+        return ExecutionSandbox.run_command(cmd, timeout=profile.timeout_seconds, target_name="snyk-agent")
 
     def _execute_mock(self, case: TestCase, fixture_dir: str) -> RawExecution:
         content = ""
         for file_info in case.files:
             content += file_info.get("content", "").lower() + "\n"
 
-        has_vuln = ("secret" in content and "send" in content) or "attacker.example.com" in content or "ignore previous instructions" in content
+        has_vuln = "vulnerable" in content or "cve-" in content
 
-        stdout = json.dumps({"issues": [{"code": "SKILLSPECTOR-VULN", "title": "Detected vulnerability"}]}) if has_vuln else json.dumps({"issues": []})
+        stdout = json.dumps({"vulnerabilities": [{"id": "SNYK-PYTHON-VULN-1", "title": "Vulnerable dependency"}] if has_vuln else []})
         return RawExecution(
-            scanner="skillspector",
-            command=[self._binary_path, "inspect", fixture_dir],
+            scanner="snyk-agent",
+            command=[self._binary_path, "code", "test", fixture_dir],
             exit_code=1 if has_vuln else 0,
             stdout=stdout,
             stderr="",
-            duration_ms=5,
+            duration_ms=8,
             execution_status=ExecutionStatus.SUCCESS,
         )
 
     def parse(self, case: TestCase, execution: RawExecution) -> RichNormalizedResult:
         if execution.execution_status == ExecutionStatus.TARGET_UNAVAILABLE:
             return RichNormalizedResult(
-                run_id="run-skillspector",
+                run_id="run-snyk-agent",
                 case_id=case.id,
-                target_name="skillspector",
+                target_name="snyk-agent",
                 target_version=self._version,
                 execution_status=ExecutionStatus.TARGET_UNAVAILABLE,
                 outcome=AssuranceOutcome.INCOMPLETE,
@@ -103,9 +101,9 @@ class SkillSpectorAdapter(ArtifactScannerAdapter):
 
         if execution.timed_out:
             return RichNormalizedResult(
-                run_id="run-skillspector",
+                run_id="run-snyk-agent",
                 case_id=case.id,
-                target_name="skillspector",
+                target_name="snyk-agent",
                 target_version=self._version,
                 execution_status=ExecutionStatus.TIMEOUT,
                 outcome=AssuranceOutcome.INCOMPLETE,
@@ -120,18 +118,18 @@ class SkillSpectorAdapter(ArtifactScannerAdapter):
         if execution.stdout.strip():
             try:
                 data = json.loads(execution.stdout)
-                issues = data.get("issues", [])
-                if issues:
+                vulns = data.get("vulnerabilities", []) or data.get("runs", [])
+                if vulns:
                     is_vulnerable = True
-                    for issue in issues:
+                    for vuln in vulns:
                         findings.append(
                             NormalizedFinding(
-                                scanner="skillspector",
-                                native_rule_id=issue.get("code", "SKILLSPECTOR-ISSUE"),
+                                scanner="snyk-agent",
+                                native_rule_id=vuln.get("id", "SNYK-VULN"),
                                 canonical_capability=case.domain,
                                 severity=Severity.HIGH,
-                                message=issue.get("title", "SkillSpector finding"),
-                                native_evidence=issue,
+                                message=vuln.get("title", "Snyk vulnerability finding"),
+                                native_evidence=vuln,
                             )
                         )
             except json.JSONDecodeError:
@@ -146,9 +144,9 @@ class SkillSpectorAdapter(ArtifactScannerAdapter):
             outcome = AssuranceOutcome.NOT_DETECTED if expected_malicious else AssuranceOutcome.PASS
 
         return RichNormalizedResult(
-            run_id="run-skillspector",
+            run_id="run-snyk-agent",
             case_id=case.id,
-            target_name="skillspector",
+            target_name="snyk-agent",
             target_version=self._version,
             execution_status=ExecutionStatus.SUCCESS,
             outcome=outcome,

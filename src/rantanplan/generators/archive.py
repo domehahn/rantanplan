@@ -3,9 +3,7 @@ Programmatic archive generators for testing scanner archive processing safety.
 """
 
 import io
-import os
 import zipfile
-from typing import Tuple
 
 
 def generate_zip_traversal_archive() -> bytes:

@@ -2,15 +2,15 @@
 Metrics calculation module for per-scanner and per-domain analysis.
 """
 
-from typing import Dict, List
-from rantanplan.models import NormalizedResult, Outcome
+
+from rantanplan.models import ExecutionStatus, NormalizedResult, Outcome
 
 
 class MetricsCalculator:
     """Calculates True Positive Rate, False Positive Rate, Error Rate, Timeout Rate, and Applicability Metrics."""
 
     @staticmethod
-    def calculate_scanner_metrics(results: List[NormalizedResult]) -> Dict[str, float]:
+    def calculate_scanner_metrics(results: list[NormalizedResult]) -> dict[str, float]:
         if not results:
             return {
                 "tpr": 100.0,
@@ -36,9 +36,9 @@ class MetricsCalculator:
                 fp += 1
             elif r.outcome == Outcome.PASS:
                 tn += 1
-            elif r.outcome == Outcome.ERROR:
+            elif r.outcome == Outcome.ERROR or r.execution_status in (ExecutionStatus.TARGET_ERROR, ExecutionStatus.CRASH, ExecutionStatus.PARSER_ERROR):
                 errors += 1
-            elif r.outcome == Outcome.TIMEOUT:
+            elif r.outcome == Outcome.TIMEOUT or r.execution_status == ExecutionStatus.TIMEOUT:
                 timeouts += 1
 
         total = len(results)

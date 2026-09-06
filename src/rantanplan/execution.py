@@ -1,15 +1,76 @@
 """
-Execution sandbox engine for running external scanner subprocesses safely.
+Execution sandbox engine with dynamic binary resolution and real version discovery.
 """
 
+import hashlib
 import os
 import shutil
+import subprocess
 import tempfile
 import time
-import subprocess
-from typing import Dict, List, Optional, Tuple
 
-from rantanplan.models import RawExecution, RunProfile, TestCase
+from rantanplan.models import ExecutionStatus, RawExecution
+
+
+def resolve_binary_path(tool_name: str, cli_override: str | None = None) -> str:
+    """
+    Executable resolution order:
+    1. Explicit CLI override
+    2. Environment variable RANTANPLAN_<TOOL_NAME>_BIN
+    3. Configuration path
+    4. PATH discovery via shutil.which
+    """
+    if cli_override and os.path.exists(cli_override):
+        return cli_override
+
+    env_var_name = f"RANTANPLAN_{tool_name.upper().replace('-', '_')}_BIN"
+    env_override = os.environ.get(env_var_name)
+    if env_override and os.path.exists(env_override):
+        return env_override
+
+    found_path = shutil.which(tool_name)
+    if found_path:
+        return found_path
+
+    return tool_name  # Return binary name for PATH lookup attempt
+
+
+def discover_binary_version(binary_path: str) -> str:
+    """Discovers real version of binary by calling --version or version."""
+    if not shutil.which(binary_path) and not os.path.exists(binary_path):
+        return "VERSION_UNKNOWN"
+
+    for flag in ["--version", "version", "-v"]:
+        try:
+            res = subprocess.run(
+                [binary_path, flag],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=5,
+                shell=False,
+            )
+            out = (res.stdout or res.stderr).strip()
+            if out and res.returncode == 0:
+                first_line = out.split("\n")[0]
+                return first_line[:64]
+        except Exception:
+            continue
+
+    return "VERSION_UNKNOWN"
+
+
+def compute_file_sha256(file_path: str) -> str | None:
+    if not os.path.exists(file_path):
+        return None
+    try:
+        hasher = hashlib.sha256()
+        with open(file_path, "rb") as f:
+            while chunk := f.read(8192):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+    except Exception:
+        return None
 
 
 class SandboxRunner:
@@ -20,9 +81,9 @@ class SandboxRunner:
 
     def execute(
         self,
-        command: List[str],
-        cwd: Optional[str] = None,
-        env_overrides: Optional[Dict[str, str]] = None,
+        command: list[str],
+        cwd: str | None = None,
+        env_overrides: dict[str, str] | None = None,
         scanner_name: str = "generic",
     ) -> RawExecution:
         if not command:
@@ -33,10 +94,10 @@ class SandboxRunner:
                 stdout="",
                 stderr="Empty command slice",
                 duration_ms=0,
+                execution_status=ExecutionStatus.INVALID_COMMAND,
                 error_message="Empty command slice",
             )
 
-        # Environment Sanitization
         temp_home = tempfile.mkdtemp(prefix="rantanplan-home-")
         safe_env = {
             "PATH": os.environ.get("PATH", "/usr/local/bin:/usr/bin:/bin"),
@@ -46,7 +107,6 @@ class SandboxRunner:
             "LC_ALL": "C.UTF-8",
         }
 
-        # Add explicit non-secret env overrides
         if env_overrides:
             for k, v in env_overrides.items():
                 safe_env[k] = v
@@ -56,6 +116,7 @@ class SandboxRunner:
         stdout_str = ""
         stderr_str = ""
         exit_code = -1
+        exec_status = ExecutionStatus.SUCCESS
 
         try:
             process = subprocess.Popen(
@@ -71,13 +132,21 @@ class SandboxRunner:
             try:
                 stdout_str, stderr_str = process.communicate(timeout=self.timeout_seconds)
                 exit_code = process.returncode
+                if exit_code != 0 and exit_code != 1:
+                    exec_status = ExecutionStatus.TARGET_ERROR
             except subprocess.TimeoutExpired:
                 timed_out = True
                 process.kill()
                 stdout_str, stderr_str = process.communicate()
                 exit_code = -1
+                exec_status = ExecutionStatus.TIMEOUT
+        except FileNotFoundError:
+            exec_status = ExecutionStatus.TARGET_UNAVAILABLE
+            stderr_str = f"Binary not found: {command[0]}"
+            exit_code = -1
         except Exception as e:
-            stderr_str = f"Execution error: {str(e)}"
+            exec_status = ExecutionStatus.CRASH
+            stderr_str = f"Execution crash error: {e!s}"
             exit_code = -1
         finally:
             shutil.rmtree(temp_home, ignore_errors=True)
@@ -92,11 +161,31 @@ class SandboxRunner:
             stderr=stderr_str or "",
             duration_ms=duration_ms,
             timed_out=timed_out,
+            execution_status=exec_status,
             error_message="Execution timed out" if timed_out else None,
         )
 
 
-def create_temp_fixture_dir(files: List[Dict[str, str]]) -> Tuple[str, callable]:
+# Aliases for backward/adapter compatibility
+get_binary_path = resolve_binary_path
+
+
+class ExecutionSandbox:
+    """Convenience wrapper for sandbox command execution."""
+
+    @staticmethod
+    def run_command(
+        command: list[str],
+        timeout: int = 30,
+        target_name: str = "generic",
+        cwd: str | None = None,
+        env_overrides: dict[str, str] | None = None,
+    ) -> RawExecution:
+        runner = SandboxRunner(timeout_seconds=timeout)
+        return runner.execute(command, cwd=cwd, env_overrides=env_overrides, scanner_name=target_name)
+
+
+def create_temp_fixture_dir(files: list[dict[str, str]]) -> tuple[str, callable]:
     """Creates a temporary workspace containing the fixture files."""
     tmp_dir = tempfile.mkdtemp(prefix="rantanplan-fixture-")
 
@@ -113,4 +202,3 @@ def create_temp_fixture_dir(files: List[Dict[str, str]]) -> Tuple[str, callable]
             f.write(content)
 
     return tmp_dir, cleanup
-

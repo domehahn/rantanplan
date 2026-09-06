@@ -3,7 +3,7 @@ Independent Ground Truth validation and schema loader engine.
 """
 
 import os
-from typing import Dict, List, Optional
+
 import yaml
 
 from rantanplan.models import TestCase
@@ -12,11 +12,11 @@ from rantanplan.models import TestCase
 class GroundTruthEngine:
     """Engine for loading clean-room test cases and verifying schema ground truth."""
 
-    def __init__(self, cases_dir: Optional[str] = None):
+    def __init__(self, cases_dir: str | None = None):
         self.cases_dir = cases_dir or os.path.join(os.path.dirname(__file__), "..", "..", "cases")
 
-    def load_test_cases(self, domain_filter: Optional[str] = None) -> List[TestCase]:
-        cases: List[TestCase] = []
+    def load_test_cases(self, domain_filter: str | None = None) -> list[TestCase]:
+        cases: list[TestCase] = []
         if not os.path.exists(self.cases_dir):
             return self.get_builtin_test_cases()
 
@@ -39,7 +39,7 @@ class GroundTruthEngine:
 
         return cases
 
-    def get_builtin_test_cases(self) -> List[TestCase]:
+    def get_builtin_test_cases(self) -> list[TestCase]:
         return [
             TestCase(
                 id="static-secret-to-network-001",

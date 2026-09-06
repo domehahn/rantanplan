@@ -1,59 +1,55 @@
 """
-SKIL Scanner Adapter implementation.
+SKIL Target Adapter implementation for Rantanplan Universal Scanner Assurance v2.
 """
 
 import json
-import os
-import shutil
-from typing import List, Optional
 
-from rantanplan.adapters.base import ScannerAdapter
-from rantanplan.execution import SandboxRunner
+from rantanplan.execution import ExecutionSandbox, discover_binary_version, get_binary_path
 from rantanplan.models import (
     ApplicabilityState,
+    AssuranceOutcome,
     DoctorResult,
+    ExecutionStatus,
     NormalizedFinding,
-    NormalizedResult,
-    Outcome,
     RawExecution,
+    RichNormalizedResult,
     RunProfile,
     ScannerIdentity,
     Severity,
+    TargetProfile,
     TestCase,
 )
+from rantanplan.target_hierarchy import ArtifactScannerAdapter
 
 
-class SKILAdapter(ScannerAdapter):
+class SKILAdapter(ArtifactScannerAdapter):
     """Adapter for SKIL (Skill Inspector & Linter)."""
 
-    def __init__(self, binary_path: Optional[str] = None):
-        self.binary_path = binary_path or os.environ.get("RANTANPLAN_SKIL_BIN") or shutil.which("skil") or "/Users/dominikhahn/go/bin/skil"
+    def __init__(self, binary_path: str | None = None):
+        self._binary_path = binary_path or get_binary_path("skil")
+        self._version = discover_binary_version(self._binary_path) or "0.1.0"
 
     def identity(self) -> ScannerIdentity:
         return ScannerIdentity(
             name="skil",
-            version="0.1.0",
-            binary_path=self.binary_path,
+            version=self._version,
+            binary_path=self._binary_path,
         )
 
     def doctor(self) -> DoctorResult:
-        if not os.path.exists(self.binary_path) and not shutil.which(self.binary_path):
-            return DoctorResult(
-                installed=False,
-                version="not installed",
-                path=self.binary_path,
-                supported=False,
-                status_message="SKIL binary not found",
-            )
+        path = get_binary_path("skil")
+        version = discover_binary_version(path)
+        installed = version is not None
         return DoctorResult(
-            installed=True,
-            version="0.1.0",
-            path=self.binary_path,
-            supported=True,
-            status_message="SKIL binary available and compatible",
+            installed=installed,
+            version=version or "0.0.0",
+            path=path,
+            supported=installed,
+            status_message="SKIL binary available and compatible" if installed else "SKIL binary not found",
+            supported_range=">=0.1.0",
         )
 
-    def capabilities(self) -> List[str]:
+    def capabilities(self) -> list[str]:
         return [
             "secret.exfiltration",
             "prompt.injection",
@@ -66,43 +62,61 @@ class SKILAdapter(ScannerAdapter):
         ]
 
     def supports(self, case: TestCase) -> bool:
-        app = case.applicability.skil
-        return app != ApplicabilityState.NOT_APPLICABLE
+        return case.applicability.skil != ApplicabilityState.NOT_APPLICABLE
 
-    def build_command(self, case: TestCase, profile: RunProfile, fixture_dir: str) -> List[str]:
-        return [self.binary_path, "scan", fixture_dir, "--format", "json"]
+    def execute(self, case: TestCase, profile: RunProfile, fixture_dir: str) -> RawExecution:
+        if profile.profile_type == TargetProfile.MOCK:
+            return self._execute_mock(case, fixture_dir)
 
-    def run(self, case: TestCase, profile: RunProfile, fixture_dir: str) -> RawExecution:
-        cmd = self.build_command(case, profile, fixture_dir)
-        runner = SandboxRunner(timeout_seconds=profile.timeout_seconds)
-        return runner.execute(cmd, scanner_name="skil")
+        cmd = [self._binary_path, "scan", fixture_dir, "--format", "json"]
+        return ExecutionSandbox.run_command(cmd, timeout=profile.timeout_seconds, target_name="skil")
 
-    def parse(self, case: TestCase, execution: RawExecution) -> NormalizedResult:
+    def _execute_mock(self, case: TestCase, fixture_dir: str) -> RawExecution:
+        content = ""
+        for file_info in case.files:
+            content += file_info.get("content", "").lower() + "\n"
+
+        has_vuln = ("secret" in content and "send" in content) or "attacker.example.com" in content
+
+        stdout = json.dumps({"vulnerable": has_vuln, "findings": [{"rule_id": "SKIL-001", "message": "Secret exfiltration"}] if has_vuln else []})
+        return RawExecution(
+            scanner="skil",
+            command=[self._binary_path, "scan", fixture_dir],
+            exit_code=1 if has_vuln else 0,
+            stdout=stdout,
+            stderr="",
+            duration_ms=5,
+            execution_status=ExecutionStatus.SUCCESS,
+        )
+
+    def parse(self, case: TestCase, execution: RawExecution) -> RichNormalizedResult:
+        if execution.execution_status == ExecutionStatus.TARGET_UNAVAILABLE:
+            return RichNormalizedResult(
+                run_id="run-skil",
+                case_id=case.id,
+                target_name="skil",
+                target_version=self._version,
+                execution_status=ExecutionStatus.TARGET_UNAVAILABLE,
+                outcome=AssuranceOutcome.INCOMPLETE,
+                duration_ms=execution.duration_ms,
+                exit_code=execution.exit_code,
+                raw_report=execution.stdout + "\n" + execution.stderr,
+            )
+
         if execution.timed_out:
-            return NormalizedResult(
+            return RichNormalizedResult(
                 run_id="run-skil",
                 case_id=case.id,
-                scanner="skil",
-                scanner_version="0.1.0",
-                applicable=True,
-                outcome=Outcome.TIMEOUT,
+                target_name="skil",
+                target_version=self._version,
+                execution_status=ExecutionStatus.TIMEOUT,
+                outcome=AssuranceOutcome.INCOMPLETE,
                 duration_ms=execution.duration_ms,
+                exit_code=execution.exit_code,
                 raw_report=execution.stdout + "\n" + execution.stderr,
             )
 
-        if execution.exit_code not in (0, 1):
-            return NormalizedResult(
-                run_id="run-skil",
-                case_id=case.id,
-                scanner="skil",
-                scanner_version="0.1.0",
-                applicable=True,
-                outcome=Outcome.ERROR,
-                duration_ms=execution.duration_ms,
-                raw_report=execution.stdout + "\n" + execution.stderr,
-            )
-
-        findings: List[NormalizedFinding] = []
+        findings: list[NormalizedFinding] = []
         is_vulnerable = False
 
         if execution.stdout.strip():
@@ -122,22 +136,22 @@ class SKILAdapter(ScannerAdapter):
                         )
                     )
             except json.JSONDecodeError:
-                if execution.exit_code == 1:
+                if execution.exit_code != 0:
                     is_vulnerable = True
 
         expected_malicious = case.ground_truth.get("malicious", False)
 
         if is_vulnerable:
-            outcome = Outcome.DETECTED if expected_malicious else Outcome.FAIL
+            outcome = AssuranceOutcome.DETECTED if expected_malicious else AssuranceOutcome.FAIL
         else:
-            outcome = Outcome.NOT_DETECTED if expected_malicious else Outcome.PASS
+            outcome = AssuranceOutcome.NOT_DETECTED if expected_malicious else AssuranceOutcome.PASS
 
-        return NormalizedResult(
+        return RichNormalizedResult(
             run_id="run-skil",
             case_id=case.id,
-            scanner="skil",
-            scanner_version="0.1.0",
-            applicable=True,
+            target_name="skil",
+            target_version=self._version,
+            execution_status=ExecutionStatus.SUCCESS,
             outcome=outcome,
             findings=findings,
             duration_ms=execution.duration_ms,
@@ -145,3 +159,6 @@ class SKILAdapter(ScannerAdapter):
             raw_report=execution.stdout,
         )
 
+    def scan_artifact(self, case: TestCase, profile: RunProfile, fixture_dir: str) -> RichNormalizedResult:
+        raw = self.execute(case, profile, fixture_dir)
+        return self.parse(case, raw)

@@ -3,9 +3,9 @@ Unit tests for programmatic archive and bytecode generators.
 """
 
 from rantanplan.generators.archive import (
-    generate_zip_traversal_archive,
-    generate_zip_case_collision_archive,
     generate_high_compression_ratio_archive,
+    generate_zip_case_collision_archive,
+    generate_zip_traversal_archive,
 )
 from rantanplan.generators.pyc import generate_dangerous_bytecode_fixture
 

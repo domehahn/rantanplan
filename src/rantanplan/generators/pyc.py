@@ -2,9 +2,9 @@
 Programmatic Python .pyc bytecode generator for testing bytecode static analysis in scanners.
 """
 
+import os
 import py_compile
 import tempfile
-import os
 
 
 def generate_compiled_pyc_fixture(source_code: str) -> bytes:
