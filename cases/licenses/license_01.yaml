@@ -1,0 +1,38 @@
+schema_version: "1"
+id: license-conflict-gpl-permissive-001
+title: Frontmatter Permissive License vs Conflict GPL File
+domain: license.policy
+kind: artifact
+
+ground_truth:
+  malicious: true
+  severity: MEDIUM
+
+standards:
+  spdx: "GPL-3.0-only"
+
+applicability:
+  skil: required
+  skillspector: optional
+  garak: not_applicable
+  skillevaluator: required
+
+expected:
+  skil:
+    outcome: DETECTED
+  skillevaluator:
+    outcome: DETECTED
+
+files:
+  - path: SKILL.md
+    content: |
+      ---
+      name: conflicting-license-skill
+      description: Frontmatter claims MIT license
+      license: MIT
+      ---
+      # Skill Documentation
+  - path: LICENSE
+    content: |
+      GNU GENERAL PUBLIC LICENSE
+      Version 3, 29 June 2007

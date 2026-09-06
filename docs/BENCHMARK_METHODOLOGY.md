@@ -27,3 +27,4 @@ Rantanplan explicitly models these scopes so static scanners are not penalized f
 - `TIMEOUT`: Execution exceeded wall-clock timeout limit.
 - `NOT_APPLICABLE`: Case falls outside scanner's operating scope (NEVER counted as a miss).
 - `SKIPPED_REQUIREMENT`: Missing optional hardware/software requirement (e.g. Docker, GPU).
+

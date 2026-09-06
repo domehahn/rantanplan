@@ -22,3 +22,4 @@ To prevent accidental host damage or unintended offensive side effects during sc
    - Core test suites (`offline-core`, `static`, `demo`) operate with zero public network dependencies.
    - Mock services (Mock LLM, Mock MCP, Mock HTTP Sink) bind strictly to `127.0.0.1` loopback endpoints.
    - Rantanplan never contacts real cloud metadata endpoints (`169.254.169.254`), Kubernetes APIs, or production cloud infrastructure.
+

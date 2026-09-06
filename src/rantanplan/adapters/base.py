@@ -52,3 +52,4 @@ class ScannerAdapter(ABC):
     def parse(self, case: TestCase, execution: RawExecution) -> NormalizedResult:
         """Parses raw execution output into a NormalizedResult."""
         pass
+

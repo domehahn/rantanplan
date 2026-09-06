@@ -62,3 +62,4 @@ def test_metrics_calculator():
     m = MetricsCalculator.calculate_scanner_metrics(results)
     assert m["tpr"] == 100.0
     assert m["fpr"] == 0.0
+

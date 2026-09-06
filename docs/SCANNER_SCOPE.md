@@ -40,3 +40,4 @@ SkillSpector        garak           SkillEvaluator          SKIL
 - **Primary Layer**: Full-lifecycle Skill Security, Provenance & Runtime Governance.
 - **Capabilities**: `validate`, `lint`, `scan` (static + semantic), `verify`, `eval`, `sbom`, `attest`, `package`, `policy`, `trust` graph, `proxy` enforcement.
 - **Input**: Skill artifacts, packages (`.tgz`), signed attestations, policy configurations.
+

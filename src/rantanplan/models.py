@@ -158,3 +158,4 @@ class RunProfile(BaseModel):
     llm_allowed: bool = False
     timeout_seconds: int = 30
     seed: int = 42151
+

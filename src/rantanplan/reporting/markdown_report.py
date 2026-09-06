@@ -33,3 +33,4 @@ def generate_markdown_report(matrix_data: Dict[str, Any], metrics_data: Dict[str
         md.append(f"| `{case_id}` | `{domain}` | " + " | ".join(outcomes) + " |")
 
     return "\n".join(md)
+

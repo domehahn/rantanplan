@@ -58,3 +58,4 @@ class MetricsCalculator:
             "false_positives": fp,
             "true_negatives": tn,
         }
+

@@ -139,3 +139,4 @@ class SkillEvaluatorAdapter(ScannerAdapter):
             exit_code=execution.exit_code,
             raw_report=execution.stdout,
         )
+

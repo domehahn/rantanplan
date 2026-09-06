@@ -19,3 +19,4 @@ This matrix documents the functional security and quality coverage claimed and v
 - `●` Full Native Capability
 - `◐` Partial or Delegated Capability
 - `—` Not Applicable / Unsupported at this Operational Layer
+

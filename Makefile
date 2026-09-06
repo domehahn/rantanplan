@@ -45,3 +45,4 @@ demo:
 
 clean:
 	rm -rf bin/ dist/ *.egg-info .pytest_cache .coverage results/ snapshots/
+

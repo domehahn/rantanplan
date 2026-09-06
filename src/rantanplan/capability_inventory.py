@@ -51,3 +51,4 @@ class CapabilityInventoryEngine:
             json.dump(inventory_data, f, indent=2)
 
         return inventory_data
+

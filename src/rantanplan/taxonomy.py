@@ -62,3 +62,4 @@ RULE_MAPPINGS = {
     "garak.dan": "llm.jailbreak",
     "garak.exfil": "secret.exfiltration",
 }
+

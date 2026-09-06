@@ -79,3 +79,4 @@ class MockHTTPSink:
     def handle_request(self, method: str, url: str, data: Any = None) -> Dict[str, Any]:
         self.recorded_requests.append({"method": method, "url": url, "data": data})
         return {"status": 200, "message": "Canary HTTP sink received request"}
+

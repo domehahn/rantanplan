@@ -113,3 +113,4 @@ def create_temp_fixture_dir(files: List[Dict[str, str]]) -> Tuple[str, callable]
             f.write(content)
 
     return tmp_dir, cleanup
+

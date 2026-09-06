@@ -72,3 +72,4 @@ def generate_html_report(matrix_data: Dict[str, Any], metrics_data: Dict[str, An
 </body>
 </html>
 """
+
