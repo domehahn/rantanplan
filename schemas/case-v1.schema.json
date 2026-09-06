@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RantanplanTestCaseV1",
+  "type": "object",
+  "required": ["schema_version", "id", "title", "domain", "kind", "ground_truth"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "domain": { "type": "string" },
+    "kind": { "type": "string" },
+    "description": { "type": "string" },
+    "ground_truth": {
+      "type": "object",
+      "required": ["malicious"],
+      "properties": {
+        "malicious": { "type": "boolean" },
+        "severity": { "type": "string" }
+      }
+    }
+  }
+}

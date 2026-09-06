@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rantanplan"
+version = "1.0.0"
+description = "AI Agent Security Scanner Conformance, Differential Testing, Adversarial Evaluation and Benchmark Framework"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Rantanplan Authors", email = "antigravity@rantanplan.ai" }
+]
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=13.7.0",
+    "pydantic>=2.7.0",
+    "pyyaml>=6.0.1",
+    "jinja2>=3.1.4",
+    "jsonschema>=4.22.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[project.scripts]
+rantanplan = "rantanplan.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rantanplan"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
