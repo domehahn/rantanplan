@@ -37,3 +37,4 @@ class RAGMemoryCanaryTarget:
             "confirmed_vulnerability": is_vulnerable,
             "response": "Granted admin privileges based on retrieved memory context." if is_vulnerable else "Standard restricted query response.",
         }
+

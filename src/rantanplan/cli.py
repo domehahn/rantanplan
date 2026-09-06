@@ -111,14 +111,24 @@ def verify_ground_truth():
 @app.command()
 def gaps():
     """Analyses capability matrix coverage gaps across target scanners."""
+    adapters = [SKILAdapter(), SkillSpectorAdapter(), GarakAdapter(), SkillEvaluatorAdapter()]
+    gt_engine = GroundTruthEngine()
+    cases = gt_engine.load_test_cases()
+    tested_domains = {c.domain for c in cases}
+
     table = Table(title="Rantanplan Scanner Capability Coverage Gaps", border_style="magenta")
     table.add_column("Scanner", style="cyan")
-    table.add_column("Missing / Unmapped Capability", style="yellow")
+    table.add_column("Declared Capability", style="green")
+    table.add_column("Coverage Status", style="bold")
     table.add_column("Recommendation")
 
-    table.add_row("SkillSpector", "mcp.surface-drift", "Add MCP runtime drift test case")
-    table.add_row("garak", "secret.exfiltration", "Expand garak probe mapping for static exfil")
-    table.add_row("SkillEvaluator", "code.execution", "Integrate AST taint static check")
+    for adapter in adapters:
+        s_name = adapter.identity().name
+        for cap in adapter.capabilities():
+            if cap in tested_domains:
+                table.add_row(s_name, cap, "[bold green]TESTED[/bold green]", "Clean-room test case active")
+            else:
+                table.add_row(s_name, cap, "[bold yellow]UNMAPPED[/bold yellow]", f"Create clean-room test case for {cap}")
 
     console.print(table)
 

@@ -43,3 +43,4 @@ def test_upstream_drift_monitor():
     drift = UpstreamDriftMonitor.compare_snapshots(prev, curr)
     assert drift["total_changes"] == 1
     assert drift["changes"][0]["change_type"] == "NEW"
+

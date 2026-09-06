@@ -1,0 +1,29 @@
+name: Weekly Upstream Scanner Capability Drift
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"  # Every Monday at 04:00 UTC
+  workflow_dispatch:
+
+jobs:
+  upstream-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: uv sync --extra dev
+
+      - name: Run Upstream Inventory Snapshot & Drift Analysis
+        run: |
+          uv run rantanplan inventory
+          uv run rantanplan gaps

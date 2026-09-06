@@ -1,0 +1,48 @@
+name: Rantanplan CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  offline-core-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: |
+          uv sync --extra dev
+
+      - name: Run Ruff Linter
+        run: |
+          uv run ruff check .
+
+      - name: Run Pytest Test Suite
+        run: |
+          uv run pytest -v
+
+      - name: Run Ground-Truth Schema Verification
+        run: |
+          uv run rantanplan verify-ground-truth
+
+      - name: Run System & Scanner Doctor
+        run: |
+          uv run rantanplan doctor
+
+      - name: Run Offline-Core Benchmark Demo Matrix
+        run: |
+          uv run rantanplan demo

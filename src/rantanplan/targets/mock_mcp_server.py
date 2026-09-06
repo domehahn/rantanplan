@@ -107,3 +107,4 @@ class MockMCPServer:
             "content": [{"type": "text", "text": "Successfully read file: " + arguments.get("path", "SKILL.md")}],
             "isError": False,
         }
+

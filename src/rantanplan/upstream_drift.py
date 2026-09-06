@@ -49,3 +49,4 @@ class UpstreamDriftMonitor:
             "total_changes": len(changes),
             "changes": changes,
         }
+
