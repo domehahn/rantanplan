@@ -35,3 +35,4 @@ def generate_high_compression_ratio_archive() -> bytes:
         zf.writestr("zeroes.dat", b"0" * 1024 * 1024)
         zf.writestr("SKILL.md", "# High Compression Test Skill\n")
     return buffer.getvalue()
+

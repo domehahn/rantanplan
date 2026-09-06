@@ -34,3 +34,4 @@ def test_dangerous_bytecode_generator():
     data = generate_dangerous_bytecode_fixture()
     assert len(data) > 0
     assert b"os" in data or len(data) > 100
+
