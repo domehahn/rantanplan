@@ -21,13 +21,19 @@ def load_corpus(cases_dir: Path | None = None) -> list[TestCase]:
     if not target_dir.exists():
         return get_builtin_cases()
 
-    for path in target_dir.glob("*.json"):
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                cases.append(RantanplanTestCase(**data))
-        except Exception:
-            pass
+    for path in target_dir.rglob("*"):
+        if path.suffix.lower() in (".yaml", ".yml", ".json"):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    if path.suffix.lower() == ".json":
+                        data = json.load(f)
+                    else:
+                        import yaml
+                        data = yaml.safe_load(f)
+                    if isinstance(data, dict) and "id" in data:
+                        cases.append(RantanplanTestCase(**data))
+            except Exception:
+                pass
 
     if not cases:
         return get_builtin_cases()
