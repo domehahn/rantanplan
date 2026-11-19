@@ -16,9 +16,9 @@ jobs:
   skil:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: stable
 
@@ -29,9 +29,9 @@ jobs:
           go build -o "$RUNNER_TEMP/bin/skil" ./cmd/skil
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
-      - uses: astral-sh/setup-uv@v3
+      - uses: astral-sh/setup-uv@v10.3.3
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -50,7 +50,7 @@ jobs:
           uv run rantanplan test scanner --target skil --seed "${{ inputs.seed }}" \
             --format markdown --output skil-assurance.md
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: skil-assurance
           path: |
