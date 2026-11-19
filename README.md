@@ -2,9 +2,9 @@
 
 > **AI Security Control Assurance through Cognitive Chaos and Adversarial Mutation Testing.**
 
-[![Go Version](https://img.shields.io/badge/go-1.26-blue.svg)](https://golang.org)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/tests-100%25%20pass-brightgreen.svg)]()
+[![CI](https://github.com/rantanplan-ai/rantanplan/actions/workflows/ci.yml/badge.svg)](https://github.com/rantanplan-ai/rantanplan/actions/workflows/ci.yml)
 
 **Rantanplan** is a vendor-neutral framework designed to test, benchmark, and stress-test the tools that claim to test AI systems.
 
@@ -69,161 +69,58 @@ Normalized Findings & Scanner Assurance Score
 ## 🚀 Quick Start & Installation
 
 ### Prerequisites
-- [Go 1.26+](https://golang.org/doc/install) installed on your system.
+- Python 3.12+ and [uv](https://docs.astral.sh/uv/) (or pip)
+- Optional: the scanner binaries you want to test (`skil`, `skillspector`, `garak`, ...). Missing binaries are reported as `INCOMPLETE`, not as a pass.
 
-### Build Rantanplan
+### Install
 
 ```bash
 git clone https://github.com/rantanplan-ai/rantanplan.git
 cd rantanplan
-go build -o bin/rantanplan ./cmd/rantanplan
+uv sync --extra dev
+uv run rantanplan --help
 ```
 
-Verify installation:
+### Verify
 
 ```bash
-./bin/rantanplan target list
+uv run rantanplan doctor          # scanner binaries and versions
+uv run rantanplan verify-ground-truth
+uv run pytest
 ```
 
 ---
 
 ## 🛠️ Command Reference
 
-### 1. Test Scanner Assurance (`test scanner`)
-Evaluate a target scanner against the benchmark corpus:
+| Command | Purpose |
+| :--- | :--- |
+| `doctor` | Check scanner installation, binary paths and version compatibility |
+| `list [scanners\|cases\|capabilities]` | List registered scanners, test cases or canonical capabilities |
+| `verify-ground-truth` | Validate all test cases against the ground-truth schema |
+| `inventory` | Snapshot upstream capabilities of all scanners |
+| `gaps` | Analyse capability coverage gaps across scanners |
+| `hunt --target skil --mode false-negative\|false-positive` | Adaptive evasion / false-positive hunting via mutators |
+| `minimize --target skil` | Delta-debug a test case down to a minimal reproducer |
+| `suite [offline-core\|static\|garak\|runtime]` | Run a benchmark suite |
+| `demo` | Zero-cost, network-independent demo matrix across all scanners |
+| `benchmark` | Full benchmark and performance run |
+| `gate --min-coverage N` | CI gate exit code based on verification criteria |
+| `upstream check` | Upstream drift and compatibility monitoring |
 
-```bash
-# Terminal Dashboard Output
-./bin/rantanplan test scanner --target skil --corpus corpus/scanner
-
-# Standalone Interactive HTML Report
-./bin/rantanplan test scanner --target skil --corpus corpus/scanner --format html --output report.html
-
-# Machine-Readable SARIF or JUnit XML for CI
-./bin/rantanplan test scanner --target skil --format sarif --output rantanplan.sarif
-```
-
-### 2. Differential Target Benchmarking (`compare`)
-Compare multiple scanners side-by-side on an identical corpus/mutation matrix:
-
-```bash
-./bin/rantanplan compare --targets skil,skillspector,mock-naive,mock-strict --corpus corpus/scanner
-```
-
-### 3. Adaptive False-Negative Hunting (`hunt false-negative`)
-Iteratively mutate a vulnerable fixture until the target scanner fails to detect it:
-
-```bash
-./bin/rantanplan hunt false-negative --target skil
-```
-
-### 4. Adaptive False-Positive Hunting (`hunt false-positive`)
-Test if the scanner incorrectly flags benign defensive security documentation:
-
-```bash
-./bin/rantanplan hunt false-positive --target skil
-```
-
-### 5. Delta Debugging Minimization (`minimize`)
-Shrink a complex multi-line evasion fixture into a 4-line minimal reproducer:
-
-```bash
-./bin/rantanplan minimize --target skil --fixture corpus/scanner/data-exfiltration/exfil_01.yaml
-```
-
-### 6. Test Agent Evaluator Assurance (`test evaluator`)
-Audit whether an evaluator incorrectly awards `PASS` for accidental successes or unauthorized side effects:
-
-```bash
-./bin/rantanplan test evaluator
-```
-
-### 7. Cognitive Chaos Engineering (`test agent`)
-Test how AI agents handle prompt ambiguity, unsupported assumptions, and entity confusion:
-
-```bash
-./bin/rantanplan test agent
-```
-
-### 8. CI Regression Gate (`gate`)
-Enforce score thresholds in CI pipelines:
-
-```bash
-./bin/rantanplan gate --results rantanplan-results.json
-```
-
-### 9. Export Portable Regression Bundle (`export regression`)
-Export a discovered evasion finding into a standalone regression fixture:
-
-```bash
-./bin/rantanplan export regression RAN-SCAN-SEM-004 --output regression_bundles/
-```
+See [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md) for details.
 
 ---
 
-## 🎯 How to Test Against SKIL
+## 🎯 Testing Against SKIL
 
-Rantanplan provides first-class support for testing **SKIL** (`skil scan`, `skil validate`, `skil verify`, `skil eval`).
-
-### Local Testing Workflow
-
-1. Ensure `skil` CLI binary is installed and accessible in your `PATH`.
-2. Run Rantanplan against `skil`:
+1. Install the `skil` binary and make sure it is on your `PATH` (or set `RANTANPLAN_SKIL_BIN`).
+2. Run:
 
 ```bash
-# Run full Scanner Assurance test suite against SKIL
-./bin/rantanplan test scanner \
-  --target skil \
-  --corpus corpus/scanner \
-  --format dashboard
-
-# Generate an HTML report for SKIL
-./bin/rantanplan test scanner \
-  --target skil \
-  --format html \
-  --output skil-assurance-report.html
-```
-
-3. Hunt for evasions against SKIL:
-
-```bash
-./bin/rantanplan hunt false-negative --target skil
-```
-
-### GitHub Actions CI Integration
-
-Add Rantanplan to your SKIL repository workflow (`.github/workflows/rantanplan-ci.yml`):
-
-```yaml
-name: SKIL Security Assurance Gate
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-
-jobs:
-  assurance:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout SKIL
-        uses: actions/checkout@v4
-
-      - name: Install Rantanplan & SKIL
-        run: |
-          go build -o bin/rantanplan ./cmd/rantanplan
-
-      - name: Run Rantanplan Scanner Assurance
-        run: |
-          ./bin/rantanplan test scanner \
-            --target skil \
-            --corpus corpus/scanner \
-            --format json \
-            --output rantanplan-results.json
-
-      - name: Evaluate CI Gate
-        run: |
-          ./bin/rantanplan gate --results rantanplan-results.json
+uv run rantanplan doctor
+uv run rantanplan hunt --target skil --mode false-negative
+uv run rantanplan hunt --target skil --mode false-positive
 ```
 
 ---
@@ -232,39 +129,34 @@ jobs:
 
 ```text
 rantanplan/
-├── cmd/rantanplan/              # CLI main entrypoint
-├── internal/
-│   ├── model/                   # GroundTruth, Fixture, Finding, AssuranceScore schemas
-│   ├── target/                  # Target interface & execution sandbox
-│   ├── adapter/                 # Adapters (SKIL, SkillSpector, garak, promptfoo, Mock)
-│   ├── mutation/                # 8 Metamorphic Mutators & LLM provider engine
-│   ├── oracle/                  # Semantic Invariant Validator
-│   ├── search/                  # Adaptive Evasion Search Engine
-│   ├── minimizer/               # Delta Debugging Minimizer (ddmin)
-│   ├── cognitive/               # Cognitive Chaos Engine & Fault Taxonomy
-│   ├── evaluator/               # Evaluator Assurance & SkillEvaluator Dedup Benchmark
-│   ├── assurance/               # Transparent Scoring Engine
-│   ├── compare/                 # Differential Matrix Compare Engine
-│   └── report/                  # Terminal, HTML, JSON, SARIF, JUnit Report Formatters
-├── corpus/                      # Seed Fixture Corpus (Data Exfiltration, Prompt Injection, Hard Negatives)
-├── docs/                        # Architecture, Scoring, Threat Model, ADRs 0001–0006
-└── examples/                    # GitHub Actions & GitLab CI workflow examples
+├── src/rantanplan/
+│   ├── cli.py                   # Typer CLI entrypoint
+│   ├── adapters/                # SKIL, SkillSpector, garak, promptfoo, Snyk, ...
+│   ├── generators/              # Archive / bytecode / clean-room case generators
+│   ├── targets/                 # Mock targets (MCP rug-pull, RAG canary, ...)
+│   ├── reporting/               # HTML report
+│   ├── execution.py             # Subprocess sandbox
+│   ├── ground_truth.py          # Independent ground-truth loader
+│   ├── metrics.py               # Scoring
+│   ├── search.py                # Adaptive evasion search
+│   └── upstream_drift.py        # Upstream drift monitor
+├── corpus/scanner/              # Seed corpus (data exfiltration, hard negatives)
+├── docs/                        # Architecture, scoring, threat model, ADRs
+└── tests/
 ```
 
 ---
 
 ## 🔒 Security & Threat Model
 
-Rantanplan operates under a strict isolation model:
-- **Fixtures as Data**: Untrusted test case code is never executed directly during standard scanning.
-- **No Shell Execution**: Subprocesses are launched via explicit `argv` slices without shell wrapper wrappers (`sh -c`).
-- **Resource Limits**: Context timeouts (30s default), bounded stdout/stderr byte capture, and sanitized environment variables (`PATH`, `TMPDIR`, `HOME` pointing to temp dirs).
+- **Fixtures as data**: untrusted test case content is written to temp directories and passed to scanners, never executed directly.
+- **No shell execution**: subprocesses are launched with explicit `argv` (`shell=False`).
+- **Resource limits**: timeouts and sanitized environment.
 
-For full security analysis, see [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
+See [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 
 ---
 
 ## 📄 License
 
-Rantanplan is released under the [MIT License](LICENSE).
-
+MIT, see [LICENSE](LICENSE).

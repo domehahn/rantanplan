@@ -127,7 +127,7 @@ def verify_ecosystem() -> dict[str, Any]:
         f.write(f"**Coverage**: `{coverage}%` ({fully_supported_count}/{total_targets} Targets Live Installed)\n\n")
         f.write("| Target Name | Installed | Status | Self-Test Passed | Capabilities |\n")
         f.write("|---|---|---|---|---|\n")
-        for key, item in target_matrix.items():
+        for item in target_matrix.values():
             caps = ", ".join(item["capabilities"][:3])
             f.write(f"| `{item['name']}` | `{item['installed']}` | `{item['status']}` | `{item['self_test_passed']}` | {caps} |\n")
 

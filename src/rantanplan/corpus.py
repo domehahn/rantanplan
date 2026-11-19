@@ -3,9 +3,14 @@ Unified Versioned Corpus Loader for Rantanplan Universal Scanner Assurance v2.
 """
 
 import json
+import logging
 from pathlib import Path
 
+import yaml
+
 from rantanplan.models import RantanplanTestCase, TestCase
+
+logger = logging.getLogger(__name__)
 
 
 def get_default_cases_dir() -> Path:
@@ -28,12 +33,11 @@ def load_corpus(cases_dir: Path | None = None) -> list[TestCase]:
                     if path.suffix.lower() == ".json":
                         data = json.load(f)
                     else:
-                        import yaml
                         data = yaml.safe_load(f)
                     if isinstance(data, dict) and "id" in data:
                         cases.append(RantanplanTestCase(**data))
-            except Exception:
-                pass
+            except (OSError, ValueError, TypeError, yaml.YAMLError) as exc:
+                logger.warning("Skipping unreadable corpus file %s: %s", path, exc)
 
     if not cases:
         return get_builtin_cases()

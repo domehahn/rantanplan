@@ -1,54 +1,27 @@
 # Rantanplan CLI Reference
 
-`rantanplan` is a single binary CLI for executing scanner assurance, evaluator auditing, cognitive chaos testing, differential benchmarking, adaptive evasion hunting, delta debugging minimization, and CI regression gating.
+`rantanplan` is a Typer-based CLI for scanner assurance, differential benchmarking, adaptive evasion hunting, delta-debugging minimization and CI gating.
 
----
+Run `uv run rantanplan --help` or `uv run rantanplan <command> --help` for the authoritative option list.
 
-## Commands Summary
+## Commands
 
-```bash
-# 1. Scanner Assurance Mode
-rantanplan test scanner --target skil --corpus corpus/scanner --format dashboard
+| Command | Description |
+| :--- | :--- |
+| `doctor` | Check scanner installation, binary paths and version compatibility |
+| `list [scanners\|cases\|capabilities]` | List registered scanners, clean-room test cases or canonical capabilities |
+| `verify-ground-truth` | Validate all test cases against the independent ground-truth schema |
+| `verify-ecosystem-cmd` | Run the end-to-end ecosystem verification suite |
+| `inventory` | Discover and snapshot upstream capabilities of all scanners |
+| `gaps` | Analyse capability matrix coverage gaps across scanners |
+| `hunt --target T --mode false-negative\|false-positive --iterations N` | Hunt for evasions or false positives with adversarial mutators |
+| `minimize --target T` | Delta-debug a test case down to minimal triggering content |
+| `suite [offline-core\|static\|garak\|runtime]` | Execute a benchmark suite |
+| `demo` | Zero-cost, network-independent demo matrix across all scanners |
+| `benchmark` | Full benchmark and performance run |
+| `gate --min-coverage N` | CI gate exit code based on verification criteria |
+| `upstream check` | Upstream drift and compatibility monitoring |
 
-# 2. Differential Comparison Matrix
-rantanplan compare --targets skil,skillspector,mock-naive --corpus corpus/scanner
+## Binary discovery
 
-# 3. Adaptive False-Negative Hunting
-rantanplan hunt false-negative --target skil
-
-# 4. Adaptive False-Positive Hunting (Defensive Hard Negatives)
-rantanplan hunt false-positive --target skil
-
-# 5. Delta Debugging Minimization (Minimal Reproducer)
-rantanplan minimize --target skil --fixture corpus/scanner/data-exfiltration/exfil_01.yaml
-
-# 6. Mutation Generation
-rantanplan mutate --fixture corpus/scanner/data-exfiltration/exfil_01.yaml
-
-# 7. Evaluator Assurance Mode (Accidental Success Detection)
-rantanplan test evaluator
-
-# 8. Cognitive Chaos Engineering (Agent Ambiguity Testing)
-rantanplan test agent
-
-# 9. CI Regression Gate
-rantanplan gate --results rantanplan.json --policy .rantanplan/gate.yaml
-
-# 10. Portable Regression Bundle Export
-rantanplan export regression RAN-SCAN-SEM-004 --output regression_bundles/
-
-# 11. Corpus & Target Management
-rantanplan corpus list
-rantanplan target list
-```
-
----
-
-## Global Options
-
-- `--target`: Name of target adapter (`skil`, `skillspector`, `mock-naive`, `mock-strict`, or custom executable name).
-- `--corpus`: Path to fixture corpus directory.
-- `--seed`: Random seed for reproducible mutation generation (default: `42151`).
-- `--format`: Output format (`dashboard`, `terminal`, `json`, `sarif`, `junit`).
-- `--output`: File path to save report output.
-
+For each scanner, the binary is resolved in this order: CLI override, `RANTANPLAN_<NAME>_BIN` environment variable, `PATH`. A scanner whose binary is missing is reported as not installed by `doctor`, and its runs end as `INCOMPLETE`.

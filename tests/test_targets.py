@@ -21,7 +21,7 @@ def test_mock_mcp_rug_pull():
 def test_rag_canary_target():
     target = RAGMemoryCanaryTarget()
     session_id = "test-session-001"
-    canary_id, directive = target.plant_canary(session_id)
+    _canary_id, _directive = target.plant_canary(session_id)
 
     res = target.simulate_unrelated_query(session_id, "What is the weather today?")
     assert res["canary_persisted"] is True

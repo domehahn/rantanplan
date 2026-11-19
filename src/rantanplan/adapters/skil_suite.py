@@ -18,7 +18,12 @@ Provides dedicated adapters for all SKIL subcommands:
 
 import json
 
-from rantanplan.execution import ExecutionSandbox, discover_binary_version, get_binary_path
+from rantanplan.execution import (
+    ExecutionSandbox,
+    binary_exists,
+    discover_binary_version,
+    get_binary_path,
+)
 from rantanplan.models import (
     AssuranceOutcome,
     DoctorResult,
@@ -44,7 +49,7 @@ class BaseSKILAdapter:
     def doctor(self) -> DoctorResult:
         path = get_binary_path("skil")
         version = discover_binary_version(path)
-        installed = version is not None
+        installed = binary_exists(path)
         return DoctorResult(
             installed=installed,
             version=version or "0.0.0",

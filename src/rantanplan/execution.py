@@ -35,26 +35,31 @@ def resolve_binary_path(tool_name: str, cli_override: str | None = None) -> str:
     return tool_name  # Return binary name for PATH lookup attempt
 
 
+def binary_exists(binary_path: str) -> bool:
+    """True if the binary resolves on PATH or exists at the given path."""
+    return shutil.which(binary_path) is not None or os.path.exists(binary_path)
+
+
 def discover_binary_version(binary_path: str) -> str:
     """Discovers real version of binary by calling --version or version."""
-    if not shutil.which(binary_path) and not os.path.exists(binary_path):
+    if not binary_exists(binary_path):
         return "VERSION_UNKNOWN"
 
     for flag in ["--version", "version", "-v"]:
         try:
             res = subprocess.run(
                 [binary_path, flag],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 timeout=5,
                 shell=False,
+                check=False,
             )
             out = (res.stdout or res.stderr).strip()
             if out and res.returncode == 0:
                 first_line = out.split("\n")[0]
                 return first_line[:64]
-        except Exception:
+        except (OSError, subprocess.SubprocessError):
             continue
 
     return "VERSION_UNKNOWN"
@@ -69,7 +74,7 @@ def compute_file_sha256(file_path: str) -> str | None:
             while chunk := f.read(8192):
                 hasher.update(chunk)
         return hasher.hexdigest()
-    except Exception:
+    except OSError:
         return None
 
 
@@ -144,7 +149,7 @@ class SandboxRunner:
             exec_status = ExecutionStatus.TARGET_UNAVAILABLE
             stderr_str = f"Binary not found: {command[0]}"
             exit_code = -1
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - sandbox must classify any target crash
             exec_status = ExecutionStatus.CRASH
             stderr_str = f"Execution crash error: {e!s}"
             exit_code = -1

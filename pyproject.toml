@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rantanplan"
-version = "1.0.0"
+version = "0.1.0"
 description = "AI Agent Security Scanner Conformance, Differential Testing, Adversarial Evaluation and Benchmark Framework"
 readme = "README.md"
 requires-python = ">=3.12"

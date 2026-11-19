@@ -8,7 +8,12 @@ Provides dedicated adapters:
 
 import json
 
-from rantanplan.execution import ExecutionSandbox, discover_binary_version, get_binary_path
+from rantanplan.execution import (
+    ExecutionSandbox,
+    binary_exists,
+    discover_binary_version,
+    get_binary_path,
+)
 from rantanplan.models import (
     ApplicabilityState,
     AssuranceOutcome,
@@ -43,7 +48,7 @@ class garakProbeAdapter(ProbeAdapter):
     def doctor(self) -> DoctorResult:
         path = get_binary_path("garak")
         version = discover_binary_version(path)
-        installed = version is not None
+        installed = binary_exists(path)
         return DoctorResult(
             installed=installed,
             version=version or "0.0.0",
@@ -181,7 +186,7 @@ class garakDetectorAdapter(DetectorAdapter):
     def doctor(self) -> DoctorResult:
         path = get_binary_path("garak")
         version = discover_binary_version(path)
-        installed = version is not None
+        installed = binary_exists(path)
         return DoctorResult(
             installed=installed,
             version=version or "0.0.0",

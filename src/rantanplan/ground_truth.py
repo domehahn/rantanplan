@@ -2,11 +2,14 @@
 Independent Ground Truth validation and schema loader engine.
 """
 
+import logging
 import os
 
 import yaml
 
 from rantanplan.models import TestCase
+
+logger = logging.getLogger(__name__)
 
 
 class GroundTruthEngine:
@@ -22,7 +25,7 @@ class GroundTruthEngine:
 
         for root, _, files in os.walk(self.cases_dir):
             for file in files:
-                if file.endswith(".yaml") or file.endswith(".yml"):
+                if file.endswith((".yaml", ".yml")):
                     full_path = os.path.join(root, file)
                     try:
                         with open(full_path, "r", encoding="utf-8") as f:
@@ -31,7 +34,8 @@ class GroundTruthEngine:
                                 case = TestCase(**data)
                                 if not domain_filter or case.domain == domain_filter:
                                     cases.append(case)
-                    except Exception:
+                    except (OSError, ValueError, TypeError, yaml.YAMLError) as exc:
+                        logger.warning("Skipping unreadable test case %s: %s", full_path, exc)
                         continue
 
         if not cases:
