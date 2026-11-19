@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1
+
+### Added
+- First real-scanner result: SKIL v0.6.0 built from source and scored (`docs/benchmarks/skil-v0.6.0.md`: grade B, recall 81%, specificity 85%, structural 50%, cross-file 33%).
+- SKIL adapter test against recorded real `skil scan --format json` output (`tests/fixtures/`).
+
+### Changed
+- `docs/LIMITATIONS.md` and README status updated; the live workflow's build path is now verified.
+
 ## 0.2.0
 
 ### Added

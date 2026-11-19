@@ -1,7 +1,7 @@
 name: Live Scanner Assurance
 
-# Manual only: scores real scanner binaries. Results are evidence, not a gate, until a scanner
-# has been run here at least once and its adapter output format has been confirmed.
+# Manual only: scores real scanner binaries. The SKIL build path (./cmd/skil) and output format were
+# verified locally against v0.6.0; results are evidence, not a gate.
 on:
   workflow_dispatch:
     inputs:

@@ -61,7 +61,7 @@ Corpus (independent labels) ──► 8 mutators (seeded) ──► Metamorphic 
    A+ to F, or `INCOMPLETE` / low confidence when the evidence is thin ([SCORING.md](docs/SCORING.md)).
 
 > **Status (v0.2.0).** The scale is calibrated on four built-in targets
-> ([REFERENCE_BENCHMARK.md](docs/REFERENCE_BENCHMARK.md)). **No real scanner has been scored yet**; see
+> ([REFERENCE_BENCHMARK.md](docs/REFERENCE_BENCHMARK.md)). Only **SKIL v0.6.0** has been scored on a real binary ([result](docs/benchmarks/skil-v0.6.0.md): grade B, recall 81%, specificity 85%, weak on split-instruction and cross-file attacks); see
 > [docs/LIMITATIONS.md](docs/LIMITATIONS.md) before relying on a grade. Evaluator and agent-chaos
 > assurance are not implemented.
 

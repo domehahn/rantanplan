@@ -2,11 +2,13 @@
 
 Read this before relying on a Rantanplan grade.
 
-1. **No real scanner has been scored yet.** Calibration uses four built-in targets. Adapters for
-   SKIL, SkillSpector, garak, Cisco, Snyk, Tencent, promptfoo and SkillEvaluator are tested against
-   fake binaries that follow the output format the adapters *assume*. Whether that matches each real
-   tool's JSON must be confirmed by running `.github/workflows/live-scanners.yml` (SKIL) or
-   `tests/test_live.py` locally. Until then, treat a real-scanner score as unverified.
+1. **Only one real scanner has been scored, once.** SKIL v0.6.0 was built from source and scored
+   ([benchmarks/skil-v0.6.0.md](benchmarks/skil-v0.6.0.md)); the SKIL adapter is verified against its real
+   JSON output (recorded in `tests/fixtures/`). The adapters for SkillSpector, garak, Cisco, Snyk,
+   Tencent, promptfoo and SkillEvaluator are only tested against fake binaries that follow the output
+   format they *assume*; treat their scores as unverified until each has been run for real. A single
+   run on a template corpus is a data point, not a verdict, and some "misses" are scope differences
+   (e.g. skil may not treat destructive commands written as prose as in scope).
 2. **The oracle is a reference implementation, not ground truth about the world.** Meaning is
    defined by `semantics.py` (English lexicon, sentence-level negation, shallow code patterns).
    A mutation is "valid" if this reference says the meaning is unchanged. Weaknesses of the reference

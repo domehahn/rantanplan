@@ -114,3 +114,20 @@ def test_timeout_also_kills_grandchildren(tmp_path):
     res = run_skil(tmp_path, "sleep 30 &\nsleep 30", timeout=1)
     assert res.outcome == AssuranceOutcome.INCOMPLETE
     assert time.time() - start < 8
+
+
+def _recorded(name: str, code: int):
+    from pathlib import Path
+
+    text = (Path(__file__).parent / "fixtures" / f"skil-v0.6.0-{name}.json").read_text()
+    return raw(stdout=text, code=code)
+
+
+def test_parses_real_skil_v0_6_0_output():
+    """Fixtures are real `skil scan --format json` outputs recorded from skil v0.6.0."""
+    detected = SKILAdapter().parse(CASE, _recorded("malicious", 1))
+    assert detected.outcome == AssuranceOutcome.DETECTED
+    assert detected.findings[0].native_rule_id == "SKIL-EX-001"
+    assert SKILAdapter().parse(BENIGN, _recorded("malicious", 1)).outcome == AssuranceOutcome.FAIL
+    assert SKILAdapter().parse(CASE, _recorded("benign", 0)).outcome == AssuranceOutcome.NOT_DETECTED
+    assert SKILAdapter().parse(BENIGN, _recorded("benign", 0)).outcome == AssuranceOutcome.PASS
