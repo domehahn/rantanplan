@@ -5,12 +5,20 @@ build-backend = "hatchling.build"
 [project]
 name = "rantanplan"
 version = "0.2.1"
-description = "AI Agent Security Scanner Conformance, Differential Testing, Adversarial Evaluation and Benchmark Framework"
+description = "Oracle-gated metamorphic testing that scores how easily AI agent security scanners can be fooled"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
-authors = [
-    { name = "Rantanplan Authors", email = "antigravity@rantanplan.ai" }
+authors = [{ name = "domehahn" }]
+keywords = ["ai-security", "metamorphic-testing", "agent-skills", "mcp", "scanner-evaluation", "llm-security"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Testing",
 ]
 dependencies = [
     "typer>=0.12.0",
@@ -20,6 +28,11 @@ dependencies = [
     "jinja2>=3.1.4",
     "jsonschema>=4.22.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/domehahn/rantanplan"
+Issues = "https://github.com/domehahn/rantanplan/issues"
+Changelog = "https://github.com/domehahn/rantanplan/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [

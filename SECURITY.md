@@ -1,25 +1,31 @@
-# Rantanplan Security Policy & Safety Boundaries
+# Security Policy
 
-Rantanplan is an open-source defensive scanner test framework designed to test, benchmark, and stress-test AI agent security controls, static analyzers, and evaluators.
+## Reporting a vulnerability
 
-## 🛡️ Defensive Safety Boundaries
+Please **do not open a public issue** for security problems. Use GitHub's
+[private vulnerability reporting](https://github.com/domehahn/rantanplan/security/advisories/new).
+Include the version (`rantanplan --version` / git tag), what you observed and a minimal reproduction.
+You can expect an acknowledgement within a week.
 
-To prevent accidental host damage or unintended offensive side effects during scanner testing, Rantanplan enforces strict safety constraints:
+Supported versions: the latest release on `main`. This is pre-1.0 software.
 
-1. **Fixtures are Inert Data Input**:
-   - Potentially dangerous instructions (e.g. `rm -rf /`, `requests.post(url, json=os.environ)`) exist strictly as static text data inside fixture files.
-   - Rantanplan **NEVER** executes fixture commands in a shell or passes fixture strings to system interpreters.
+## What counts as a vulnerability here
 
-2. **No Real Credentials**:
-   - Only canary tokens, dummy API keys (`sk-proj-0000...`, `AKIAIOSFODNN7EXAMPLE`), and fake hashes are used in test fixtures.
-   - Real system environment secrets are sanitized and stripped before calling scanner subprocesses.
+Rantanplan feeds attack-shaped text to third-party scanners and runs their binaries. Relevant issues include
+sandbox escapes or secret leakage into scanner subprocesses, a corpus or report path that executes fixture
+content, and unsafe handling of untrusted scanner output.
 
-3. **Subprocess Isolation**:
-   - Scanner binaries (SKIL, SkillSpector, garak, SkillEvaluator) are executed via explicit `argv` slices without shell wrapper execution (`shell=False`).
-   - Execution is constrained by wall-clock timeouts, memory limits, and isolated temporary `HOME` directories.
+## Safety boundaries
 
-4. **Network Isolation**:
-   - Core test suites (`offline-core`, `static`, `demo`) operate with zero public network dependencies.
-   - Mock services (Mock LLM, Mock MCP, Mock HTTP Sink) bind strictly to `127.0.0.1` loopback endpoints.
-   - Rantanplan never contacts real cloud metadata endpoints (`169.254.169.254`), Kubernetes APIs, or production cloud infrastructure.
+1. **Fixtures are inert data.** Dangerous-looking strings (`rm -rf /`, `requests.post(url, data=os.environ)`)
+   are only written to temporary files for the scanner to read. Rantanplan never executes fixture content.
+2. **No real credentials.** Fixtures use dummy values only. Scanner subprocesses receive a whitelisted
+   environment (`PATH`, a temporary `HOME`, locale) so host secrets are not passed on (covered by tests).
+3. **Subprocess isolation.** Scanners run with `shell=False`, a wall-clock timeout, and their own process
+   group, which is killed as a whole on timeout. There is no memory limit and no container or seccomp
+   isolation: **run untrusted scanner binaries in a container or VM.**
+4. **Offline by default.** The calibration suite and the corpus need no network. Real scanners you install
+   may use the network; Rantanplan does not control that.
+5. **Reports escape dynamic text** (HTML) and never include environment variables.
 
+See also [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) and [docs/LIMITATIONS.md](docs/LIMITATIONS.md).

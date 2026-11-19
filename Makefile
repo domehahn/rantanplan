@@ -1,48 +1,39 @@
-.PHONY: install lint test doctor inventory offline static garak runtime full report gaps benchmark demo clean
+.PHONY: install lint typecheck test cov doctor corpus calibrate benchmark check demo clean
 
 install:
-	uv sync
+	uv sync --extra dev
 
 lint:
 	uv run ruff check .
+
+typecheck:
 	uv run mypy src/rantanplan
 
 test:
-	uv run pytest -v
+	uv run pytest -q
+
+cov:
+	uv run pytest -q --cov=rantanplan --cov-report=term-missing --cov-fail-under=90
 
 doctor:
 	uv run rantanplan doctor
 
-inventory:
-	uv run rantanplan inventory
+corpus:
+	uv run rantanplan corpus build --out corpus
+	uv run rantanplan verify-ground-truth
 
-offline:
+calibrate:
 	uv run rantanplan suite offline-core
-
-static:
-	uv run rantanplan suite static
-
-garak:
-	uv run rantanplan suite garak
-
-runtime:
-	uv run rantanplan suite runtime
-
-full:
-	uv run rantanplan run-all
-
-report:
-	uv run rantanplan report default
-
-gaps:
-	uv run rantanplan gaps
 
 benchmark:
 	uv run rantanplan benchmark
 
+# Everything CI runs
+check: lint cov corpus calibrate benchmark
+	git diff --exit-code -- corpus docs/REFERENCE_BENCHMARK.md
+
 demo:
-	uv run rantanplan demo
+	uv run rantanplan compare
 
 clean:
-	rm -rf bin/ dist/ *.egg-info .pytest_cache .coverage results/ snapshots/
-
+	rm -rf dist/ *.egg-info .pytest_cache .ruff_cache .mypy_cache .coverage results/ snapshots/ regression_bundles/

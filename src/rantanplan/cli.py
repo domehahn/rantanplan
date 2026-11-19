@@ -22,7 +22,7 @@ from rantanplan.upstream_drift import UpstreamDriftMonitor
 
 app = typer.Typer(
     name="rantanplan",
-    help="AI Agent Security Scanner Conformance, Differential Testing, Adversarial Evaluation and Benchmark Framework",
+    help="Oracle-gated metamorphic testing that scores how easily AI agent security scanners can be fooled",
     add_completion=False,
 )
 

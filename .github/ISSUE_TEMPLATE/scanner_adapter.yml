@@ -1,0 +1,15 @@
+name: Scanner adapter request
+description: Add or fix an adapter for a scanner
+labels: [enhancement, scanner-result]
+body:
+  - type: input
+    id: scanner
+    attributes: { label: Scanner and version, placeholder: "e.g. garak 0.10.1" }
+    validations: { required: true }
+  - type: textarea
+    id: invocation
+    attributes: { label: How to install and run it on a directory, description: Include the output format }
+    validations: { required: true }
+  - type: textarea
+    id: sample
+    attributes: { label: Sample output for one malicious and one benign input, render: json }

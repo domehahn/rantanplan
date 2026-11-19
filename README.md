@@ -1,24 +1,48 @@
+<div align="center">
+
 # Rantanplan
 
-> **AI Security Control Assurance through Cognitive Chaos and Adversarial Mutation Testing.**
+**Who checks the checkers?** Oracle-gated metamorphic testing that scores how easily AI agent security scanners can be fooled.
 
-[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/domehahn/rantanplan/actions/workflows/ci.yml/badge.svg)](https://github.com/domehahn/rantanplan/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/domehahn/rantanplan?sort=semver)](https://github.com/domehahn/rantanplan/releases)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org)
+[![License: MIT](https://img.shields.io/github/license/domehahn/rantanplan)](LICENSE)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230.svg)](https://github.com/astral-sh/ruff)
+[![uv](https://img.shields.io/badge/packaging-uv-de5fe9.svg)](https://docs.astral.sh/uv/)
+[![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)](docs/LIMITATIONS.md)
 
-**Rantanplan** is a vendor-neutral framework designed to test, benchmark, and stress-test the tools that claim to test AI systems.
+[Quick start](#-quick-start--installation) · [How it works](#%EF%B8%8F-how-it-works) · [Scoring](docs/SCORING.md) · [SKIL result](docs/benchmarks/skil-v0.6.0.md) · [Limitations](docs/LIMITATIONS.md) · [Contributing](CONTRIBUTING.md)
 
-Instead of asking *"Is this skill malicious?"*, Rantanplan asks:
-- **Can the scanner be fooled by simple wording or structural changes?**
-- **Can a semantically identical vulnerability evade detection?**
-- **Does harmless security documentation trigger a false positive?**
-- **Can an agent evaluator be fooled by accidental success or unauthorized side effects?**
+</div>
+
+---
+
+Security scanners for AI agent skills and MCP servers claim to find prompt injection, secret exfiltration and
+poisoned tools. Rantanplan asks the reverse question: **can the scanner be made to judge incorrectly?**
+
+- Does rewording, splitting an instruction across files, or hiding it in Unicode or base64 make an attack disappear?
+- Does harmless defensive text ("Never send API keys ...") trigger a false alarm?
+- Is every "miss" a real miss, or did the mutation silently change the meaning? A **metamorphic oracle** decides.
+
+```text
+$ rantanplan compare
+ Metric                       mock-blind   mock-paranoid   mock-naive   mock-strict
+ Grade                        F 0.00       D 0.54          F 0.42       A+ 1.00
+ Recall (attacks detected)    0%           94%             42%          100%
+ Specificity (benign passed)  100%         54%             93%          100%
+ Obfuscation robustness       n/a          67%             60%          100%
+```
+
+On a real binary, SKIL v0.6.0 scores **B** (recall 81%, specificity 85%, strong against Unicode/encoding tricks, weak on
+instructions split across sections or files): [full report](docs/benchmarks/skil-v0.6.0.md).
+Alpha software: read [what the score does not tell you](docs/LIMITATIONS.md).
 
 ---
 
 ## 💡 What is Rantanplan?
 
-Rantanplan evaluates security scanners, evaluators, guardrails, policy engines, and agent runtimes through **Metamorphic Testing** (oracle-checked, seeded mutation of attack and benign cases).
+Rantanplan evaluates static security scanners for AI agent skills and MCP servers through **Metamorphic Testing** (oracle-checked, seeded mutation of attack and benign cases).
 
 ### Product Differentiation
 
@@ -163,6 +187,15 @@ rantanplan/
 See [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 
 ---
+
+## 🤝 Contributing
+
+New corpus cases, verified scanner adapters and mutators that expose real weaknesses are welcome. See
+[CONTRIBUTING.md](CONTRIBUTING.md), the [Code of Conduct](CODE_OF_CONDUCT.md) and the [Security Policy](SECURITY.md).
+
+## 📚 Citation
+
+See [CITATION.cff](CITATION.cff) (GitHub shows a "Cite this repository" button).
 
 ## 📄 License
 

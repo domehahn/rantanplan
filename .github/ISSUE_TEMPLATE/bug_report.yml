@@ -1,0 +1,19 @@
+name: Bug report
+description: Something produces a wrong verdict, crash or score
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes: { label: Rantanplan version, placeholder: "0.2.1 or commit sha" }
+    validations: { required: true }
+  - type: textarea
+    id: command
+    attributes: { label: Command and seed, render: shell }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: What you expected and what happened }
+    validations: { required: true }
+  - type: input
+    id: scanner
+    attributes: { label: Scanner under test (name and version), description: Leave empty for built-in targets }

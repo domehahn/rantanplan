@@ -1,37 +1,38 @@
-name: Rantanplan Scanner Assurance
+name: Scanner Assurance Gate
 
+# Scores a scanner with Rantanplan and fails the job if the grade is below B.
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  assurance-gate:
+  assurance:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Setup Go
-        uses: actions/setup-golang@v5
+      - uses: astral-sh/setup-uv@v10.3.3
+
+      - uses: actions/setup-python@v7
         with:
-          go-version: '1.26'
+          python-version: "3.12"
 
-      - name: Build Rantanplan
+      - name: Install Rantanplan
+        run: uv tool install git+https://github.com/domehahn/rantanplan@v0.2.1
+
+      # Install or build the scanner under test here and put it on PATH.
+
+      - name: Score the scanner
         run: |
-          go build -o bin/rantanplan ./cmd/rantanplan
+          rantanplan test scanner --target skil --seed 42151 \
+            --format json --output rantanplan-results.json
 
-      - name: Run Scanner Assurance Suite against SKIL
-        run: |
-          ./bin/rantanplan test scanner \
-            --target skil \
-            --corpus corpus/scanner \
-            --format json \
-            --output rantanplan-results.json
+      - name: Gate (fails on grade < B, INCOMPLETE or low confidence)
+        run: rantanplan gate --results rantanplan-results.json --min-grade B
 
-      - name: Evaluate CI Gate
-        run: |
-          ./bin/rantanplan gate \
-            --results rantanplan-results.json
-
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: rantanplan-results
+          path: rantanplan-results.json

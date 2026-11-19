@@ -1,0 +1,14 @@
+name: Corpus case or mutation idea
+description: Propose an attack shape, hard negative or mutator
+labels: [enhancement, corpus]
+body:
+  - type: textarea
+    id: idea
+    attributes: { label: Describe the case or mutation, description: Include the benign counterpart }
+    validations: { required: true }
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options: [secret.exfiltration, prompt.injection, code.execution, artifact.obfuscation, mcp.tool-poisoning, other]
+    validations: { required: true }
