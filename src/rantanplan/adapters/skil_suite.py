@@ -17,6 +17,7 @@ Provides dedicated adapters for all SKIL subcommands:
 """
 
 import json
+from typing import TYPE_CHECKING
 
 from rantanplan.adapters._common import incomplete_result, unusable_report
 from rantanplan.execution import (
@@ -42,6 +43,10 @@ from rantanplan.target_hierarchy import ArtifactScannerAdapter, EvaluatorAdapter
 
 class BaseSKILAdapter:
     """Base helper for SKIL family adapters."""
+
+    if TYPE_CHECKING:
+
+        def identity(self) -> ScannerIdentity: ...
 
     def __init__(self, binary_path: str | None = None):
         self._binary_path = binary_path or get_binary_path("skil")

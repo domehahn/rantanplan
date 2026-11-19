@@ -29,7 +29,7 @@ benchmark:
 	uv run rantanplan benchmark
 
 # Everything CI runs
-check: lint cov corpus calibrate benchmark
+check: lint typecheck cov corpus calibrate benchmark
 	git diff --exit-code -- corpus docs/REFERENCE_BENCHMARK.md
 
 demo:

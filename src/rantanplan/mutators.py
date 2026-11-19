@@ -64,6 +64,15 @@ def split_protected(text: str) -> list[tuple[str, bool]]:
     return parts
 
 
+def _picker(rng: random.Random, choices: tuple[str, ...]):
+    """Replacement function for ``re.sub`` that draws from ``choices`` with the case's rng."""
+
+    def pick(_match: re.Match[str]) -> str:
+        return rng.choice(choices)
+
+    return pick
+
+
 def _is_code(path: str) -> bool:
     return path.endswith(CODE_SUFFIXES)
 
@@ -113,7 +122,7 @@ class LexicalMutator(Mutator):
     def _rewrite(self, case, rng):
         def sub(segment: str) -> str:
             for pattern, choices in rng.sample(list(SYNONYMS.items()), len(SYNONYMS)):
-                segment = re.sub(pattern, lambda _m, c=choices: rng.choice(c), segment)
+                segment = re.sub(pattern, _picker(rng, choices), segment)
             return segment
 
         files = [

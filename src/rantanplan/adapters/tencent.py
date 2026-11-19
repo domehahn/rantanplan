@@ -8,6 +8,7 @@ Provides dedicated adapters:
 """
 
 import json
+from typing import TYPE_CHECKING
 
 from rantanplan.adapters._common import incomplete_result, unusable_report
 from rantanplan.execution import (
@@ -35,6 +36,10 @@ from rantanplan.target_hierarchy import ArtifactScannerAdapter, RuntimeScannerAd
 
 class BaseTencentAdapter:
     """Base helper for Tencent AI-Infra-Guard adapters."""
+
+    if TYPE_CHECKING:
+
+        def identity(self) -> ScannerIdentity: ...
 
     def __init__(self, binary_path: str | None = None):
         self._binary_path = binary_path or get_binary_path("tencent-ai-infra-guard")

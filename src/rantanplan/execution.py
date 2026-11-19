@@ -10,6 +10,7 @@ import signal
 import subprocess
 import tempfile
 import time
+from collections.abc import Callable
 
 from rantanplan.models import ExecutionStatus, RawExecution
 
@@ -212,7 +213,7 @@ class ExecutionSandbox:
         return runner.execute(command, cwd=cwd, env_overrides=env_overrides, scanner_name=target_name)
 
 
-def create_temp_fixture_dir(files: list[dict[str, str]]) -> tuple[str, callable]:
+def create_temp_fixture_dir(files: list[dict[str, str]]) -> tuple[str, Callable[[], None]]:
     """Creates a temporary workspace containing the fixture files."""
     tmp_dir = tempfile.mkdtemp(prefix="rantanplan-fixture-")
 

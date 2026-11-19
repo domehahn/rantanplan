@@ -161,10 +161,11 @@ def compute_scorecard(records: list[RunRecord]) -> ScoreCard:
     total_w = sum(WEIGHTS[k] for k in active)
     # Weighted geometric mean: a zero in any metric (e.g. a scanner that never detects anything)
     # drives the overall score to zero instead of being averaged away by the other metrics.
-    if any((v.value or 0.0) <= 0.0 for v in active.values()):
+    values = {k: (v.value or 0.0) for k, v in active.items()}
+    if any(x <= 0.0 for x in values.values()):
         overall = 0.0
     else:
-        overall = round(math.exp(sum(WEIGHTS[k] * math.log(v.value) for k, v in active.items()) / total_w), 4)
+        overall = round(math.exp(sum(WEIGHTS[k] * math.log(x) for k, x in values.items()) / total_w), 4)
 
     if records and incomplete / len(records) > MAX_INCOMPLETE_FRACTION:
         notes.append(f"{incomplete}/{len(records)} runs incomplete (> {MAX_INCOMPLETE_FRACTION:.0%}): no grade issued")
@@ -175,7 +176,7 @@ def compute_scorecard(records: list[RunRecord]) -> ScoreCard:
     if any(m.n == 0 or m.value is None for m in base):
         notes.append("recall or specificity has no evidence: no grade issued")
         return ScoreCard(metrics, overall, "INCOMPLETE", "none", incomplete, evaluated, notes)
-    ceiling = min(m.value for m in base)  # type: ignore[type-var]
+    ceiling = min(m.value or 0.0 for m in base)
     if ceiling < overall:
         notes.append(f"overall capped from {overall:.4f} to {ceiling:.4f} by the weaker of recall/specificity")
         overall = ceiling

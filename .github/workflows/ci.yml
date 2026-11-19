@@ -31,6 +31,10 @@ jobs:
         run: |
           uv run ruff check .
 
+      - name: Run mypy
+        run: |
+          uv run mypy src/rantanplan
+
       - name: Run Pytest Test Suite (coverage gate)
         run: |
           uv run pytest -v --cov=rantanplan --cov-report=term --cov-fail-under=90

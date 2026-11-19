@@ -6,6 +6,7 @@
 - Version discovery took the first output line; `promptfoo --version` prints an update banner first, so `doctor` showed `=====` as the version. The version line is now picked from the output.
 
 ### Changed
+- `mypy` is configured (pydantic plugin), clean on `src/rantanplan` and enforced in CI.
 - GitHub Actions upgraded to Node 24 versions (checkout v7, setup-python v7, setup-go v7, upload-artifact v7, setup-uv v10.3.3).
 
 ## 0.2.1

@@ -9,6 +9,7 @@ Provides dedicated adapters:
 """
 
 import json
+from typing import TYPE_CHECKING
 
 from rantanplan.adapters._common import incomplete_result, unusable_report
 from rantanplan.execution import (
@@ -36,6 +37,10 @@ from rantanplan.target_hierarchy import EvaluatorAdapter, ProbeAdapter
 
 class BasePromptfooAdapter:
     """Base helper for promptfoo adapters."""
+
+    if TYPE_CHECKING:
+
+        def identity(self) -> ScannerIdentity: ...
 
     def __init__(self, binary_path: str | None = None):
         self._binary_path = binary_path or get_binary_path("promptfoo")
