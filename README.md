@@ -4,7 +4,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![CI](https://github.com/rantanplan-ai/rantanplan/actions/workflows/ci.yml/badge.svg)](https://github.com/rantanplan-ai/rantanplan/actions/workflows/ci.yml)
+[![CI](https://github.com/domehahn/rantanplan/actions/workflows/ci.yml/badge.svg)](https://github.com/domehahn/rantanplan/actions/workflows/ci.yml)
 
 **Rantanplan** is a vendor-neutral framework designed to test, benchmark, and stress-test the tools that claim to test AI systems.
 
@@ -76,7 +76,7 @@ Corpus (independent labels) ──► 8 mutators (seeded) ──► Metamorphic 
 ### Install
 
 ```bash
-git clone https://github.com/rantanplan-ai/rantanplan.git
+git clone https://github.com/domehahn/rantanplan.git
 cd rantanplan
 uv sync --extra dev
 uv run rantanplan --help
