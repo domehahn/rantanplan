@@ -281,3 +281,13 @@ def test_upstream_drift_detection(tmp_path):
     assert result["drift"] is True and "Added capability c" in result["details"] and "Removed capability b" in result["details"]
     (tmp_path / "capability-snapshot-2026-03-01.json").write_text(json.dumps(snap(["a", "c"])))
     assert UpstreamDriftMonitor.check_drift(str(tmp_path))["s"]["drift"] is False
+
+
+def test_version_discovery_skips_banners(tmp_path):
+    banner = (
+        'echo "========"; echo "The current version of promptfoo 0.125.1 is lower than the latest 0.126.0."; '
+        'echo "Please run npm install -g promptfoo@latest."; echo "========"; echo; echo 0.125.1'
+    )
+    assert discover_binary_version(script(tmp_path, banner)) == "0.125.1"
+    assert discover_binary_version(script(tmp_path, 'echo "v2.0.0-rc1"')) == "v2.0.0-rc1"
+    assert discover_binary_version(script(tmp_path, 'echo "no digits here"')) == "no digits here"

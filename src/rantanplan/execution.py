@@ -4,6 +4,7 @@ Execution sandbox engine with dynamic binary resolution and real version discove
 
 import hashlib
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -41,6 +42,18 @@ def binary_exists(binary_path: str) -> bool:
     return shutil.which(binary_path) is not None or os.path.exists(binary_path)
 
 
+_VERSION_LINE_RE = re.compile(r"^[\w .-]{0,40}?\s?v?\d+\.\d+(?:\.\d+)?[\w.+-]*$")
+
+
+def _pick_version_line(output: str) -> str:
+    """Pick the line that is the version, not a banner (e.g. promptfoo prints an update notice first)."""
+    lines = [ln.strip() for ln in output.splitlines() if ln.strip()]
+    for line in lines:
+        if _VERSION_LINE_RE.match(line):
+            return line[:64]
+    return lines[0][:64]
+
+
 def discover_binary_version(binary_path: str) -> str:
     """Discovers real version of binary by calling --version or version."""
     if not binary_exists(binary_path):
@@ -58,8 +71,7 @@ def discover_binary_version(binary_path: str) -> str:
             )
             out = (res.stdout or res.stderr).strip()
             if out and res.returncode == 0:
-                first_line = out.split("\n")[0]
-                return first_line[:64]
+                return _pick_version_line(out)
         except (OSError, subprocess.SubprocessError):
             continue
 
