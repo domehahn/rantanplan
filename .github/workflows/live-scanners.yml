@@ -1,0 +1,58 @@
+name: Live Scanner Assurance
+
+# Manual only: scores real scanner binaries. Results are evidence, not a gate, until a scanner
+# has been run here at least once and its adapter output format has been confirmed.
+on:
+  workflow_dispatch:
+    inputs:
+      skil_ref:
+        description: "SKIL git ref to build (tag, branch or commit)"
+        default: "v0.6.0"
+      seed:
+        description: "Mutation seed"
+        default: "42151"
+
+jobs:
+  skil:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Build SKIL
+        run: |
+          git clone --depth 1 --branch "${{ inputs.skil_ref }}" https://github.com/domehahn/skil.git /tmp/skil-src
+          cd /tmp/skil-src
+          go build -o "$RUNNER_TEMP/bin/skil" ./cmd/skil
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - uses: astral-sh/setup-uv@v3
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: uv sync --extra dev
+
+      - name: Doctor (must show skil installed)
+        run: uv run rantanplan doctor
+
+      - name: Adapter contract against the real binary
+        run: uv run pytest -v tests/test_live.py
+
+      - name: Score SKIL
+        run: |
+          uv run rantanplan test scanner --target skil --seed "${{ inputs.seed }}" \
+            --format json --output skil-assurance.json
+          uv run rantanplan test scanner --target skil --seed "${{ inputs.seed }}" \
+            --format markdown --output skil-assurance.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skil-assurance
+          path: |
+            skil-assurance.json
+            skil-assurance.md

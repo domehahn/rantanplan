@@ -2,6 +2,8 @@
 Upstream Scanner Capability Drift Monitoring Engine.
 """
 
+import json
+from pathlib import Path
 from typing import Any
 
 
@@ -50,3 +52,21 @@ class UpstreamDriftMonitor:
             "changes": changes,
         }
 
+    @classmethod
+    def check_drift(cls, snapshot_dir: str = "snapshots") -> dict[str, dict[str, Any]]:
+        """Compare the two newest capability snapshots; returns ``target -> {drift, details}``."""
+        files = sorted(Path(snapshot_dir).glob("capability-snapshot-*.json"))
+        if not files:
+            return {"(none)": {"drift": False, "details": f"no snapshot in {snapshot_dir}/ (run `rantanplan inventory` first)"}}
+        current = json.loads(files[-1].read_text(encoding="utf-8"))
+        scanners = list(current.get("scanners", {}))
+        if len(files) < 2:
+            return {s: {"drift": False, "details": "baseline snapshot only; nothing to compare yet"} for s in scanners}
+        previous = json.loads(files[-2].read_text(encoding="utf-8"))
+        report = cls.compare_snapshots(previous, current)
+        result: dict[str, dict[str, Any]] = {s: {"drift": False, "details": "Clean"} for s in scanners}
+        for change in report["changes"]:
+            entry = result.setdefault(change["scanner"], {"drift": False, "details": ""})
+            entry["drift"] = True
+            entry["details"] = "; ".join(filter(None, [entry["details"] if entry["details"] != "Clean" else "", change["details"]]))
+        return result

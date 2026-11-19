@@ -49,7 +49,7 @@ class AdapterSelfTestHarness:
         try:
             raw_exec = self.adapter.execute(benign_case, profile, tmp_dir)
             res = self.adapter.parse(benign_case, raw_exec)
-            benign_pass = res.outcome in (AssuranceOutcome.PASS, AssuranceOutcome.NOT_DETECTED)
+            benign_pass = res.outcome == AssuranceOutcome.PASS
         finally:
             cleanup()
 
@@ -68,7 +68,7 @@ class AdapterSelfTestHarness:
         try:
             raw_exec_mal = self.adapter.execute(malicious_case, profile, tmp_dir_mal)
             res_mal = self.adapter.parse(malicious_case, raw_exec_mal)
-            malicious_pass = res_mal.outcome in (AssuranceOutcome.DETECTED, AssuranceOutcome.FAIL)
+            malicious_pass = res_mal.outcome == AssuranceOutcome.DETECTED
         finally:
             cleanup_mal()
 

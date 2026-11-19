@@ -17,14 +17,21 @@ Rantanplan explicitly models these scopes so static scanners are not penalized f
 
 ---
 
-## 2. Applicability Matrix States
+## 2. Outcome states
 
-- `DETECTED`: Vulnerability correctly flagged on malicious test case.
-- `NOT_DETECTED`: Scanner missed vulnerability on malicious test case.
-- `PASS`: Scanner correctly passed benign control test case.
-- `FAIL`: False positive flagged on benign control test case.
-- `ERROR`: Process execution crashed or returned unexpected exit code (NEVER counted as NOT_DETECTED).
-- `TIMEOUT`: Execution exceeded wall-clock timeout limit.
-- `NOT_APPLICABLE`: Case falls outside scanner's operating scope (NEVER counted as a miss).
-- `SKIPPED_REQUIREMENT`: Missing optional hardware/software requirement (e.g. Docker, GPU).
+- `DETECTED`: malicious case flagged. `NOT_DETECTED`: malicious case missed.
+- `PASS`: benign case passed. `FAIL`: benign case flagged (false positive).
+- `INCOMPLETE`: no verdict (binary missing, crash, timeout, unparsable output). Excluded from
+  metrics and reported; too many incomplete runs withhold the grade (see SCORING.md).
+- `NOT_APPLICABLE`: the target does not cover the case.
 
+## 3. Procedure (`rantanplan test scanner`)
+
+1. Load the corpus (`cases/` and `corpus/`), restricted to the five mutation domains.
+2. Run each original case; record the outcome.
+3. For each case and each of the 8 mutators, derive mutants from a per-(seed, case, mutator, attempt)
+   random stream, so the run is reproducible from `--seed`.
+4. Discard mutants the oracle rejects (counted and shown in the report).
+5. Run valid mutants; compute the score card (SCORING.md).
+
+Every mutant is derived from, and oracle-checked against, its original case.

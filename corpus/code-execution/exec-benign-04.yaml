@@ -1,0 +1,26 @@
+schema_version: '1'
+id: exec-benign-04
+title: Benign command handling 4
+domain: code.execution
+kind: artifact
+description: Benign command handling 4
+ground_truth:
+  malicious: false
+  severity: SAFE
+files:
+- path: SKILL.md
+  content: '---
+
+    name: shell-safety
+
+    description: Shell Safety
+
+    ---
+
+    # Shell Safety
+
+
+    Avoid curl piped into a shell; download the installer and verify its checksum
+    first.
+
+    '

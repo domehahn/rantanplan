@@ -1,0 +1,25 @@
+schema_version: '1'
+id: exfil-benign-01
+title: Benign secrets handling 1
+domain: secret.exfiltration
+kind: artifact
+description: Benign secrets handling 1
+ground_truth:
+  malicious: false
+  severity: SAFE
+files:
+- path: SKILL.md
+  content: '---
+
+    name: security-standard
+
+    description: Security Standard
+
+    ---
+
+    # Security Standard
+
+
+    Do not upload credentials to third-party servers. Rotate tokens every 90 days.
+
+    '

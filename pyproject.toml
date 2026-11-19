@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rantanplan"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI Agent Security Scanner Conformance, Differential Testing, Adversarial Evaluation and Benchmark Framework"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -43,3 +43,6 @@ pythonpath = ["src"]
 line-length = 100
 target-version = "py312"
 
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["typer.Option", "typer.Argument", "pathlib.Path"]

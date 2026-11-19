@@ -1,49 +1,45 @@
-# Rantanplan Scoring Methodology
+# Rantanplan Scoring
 
-Rantanplan employs a transparent, reproducible, vendor-neutral methodology to evaluate AI security controls.
+Implemented in `src/rantanplan/scoring.py`. Every number is a proportion reported with its sample
+size `n` and a Wilson 95% confidence interval.
 
----
+## Metrics
 
-## 1. Scanner Assurance Score (0.0 – 100.0)
+| Metric | Definition |
+| :--- | :--- |
+| **Recall** | malicious original cases: `DETECTED / (DETECTED + NOT_DETECTED)` |
+| **Specificity** | benign original cases: `PASS / (PASS + FAIL)` (`FAIL` = false positive) |
+| **Semantic robustness** | share of `lexical` + `semantic` mutants still detected |
+| **Structural robustness** | share of `split_instruction` + `code_alias` mutants still detected |
+| **Cross-file robustness** | share of `cross_file` mutants still detected |
+| **Obfuscation robustness** | share of `unicode` + `encoding` mutants still detected |
+| **Negative-context safety** | defensive camouflage around an attack must still be detected, and defensive wording in benign text must not be flagged |
 
-The Scanner Assurance Score measures a scanner's detection quality, precision, and robustness against semantic, structural, and obfuscation mutations.
+Robustness metrics are **conditional**: a mutant only counts if the scanner handled its parent
+correctly. Mutation sensitivity is thereby measured separately from baseline recall/specificity.
+Only mutants approved by the [metamorphic oracle](adr/0003-metamorphic-oracle.md) are counted.
 
-### Formula
+## Overall score and grade
 
-$$ \text{AssuranceScore} = 0.25 \times \text{Recall} + 0.25 \times \text{Precision} + 0.15 \times \text{SemanticRob} + 0.10 \times \text{StructRob} + 0.10 \times \text{CrossRob} + 0.10 \times \text{ObfRob} + 0.05 \times \text{NegSafety} $$
+1. Weighted **geometric mean** of the metrics that have evidence (weights: recall 0.20, specificity
+   0.20, semantic 0.10, structural 0.10, cross-file 0.10, obfuscation 0.15, negative-context 0.15).
+   A zero in any metric yields 0, so a scanner that detects nothing cannot be averaged into a pass.
+2. **Gating cap**: the overall score never exceeds `min(recall, specificity)`.
+3. Grade: A+ >= 0.95, A >= 0.90, A- >= 0.85, B+ >= 0.80, B >= 0.75, B- >= 0.70, C+ >= 0.65,
+   C >= 0.60, C- >= 0.55, D >= 0.50, otherwise F.
 
-### Metric Dimensions
+## When no grade is issued
 
-| Dimension | Description | Weight |
-| :--- | :--- | :---: |
-| **Recall** | Percentage of true vulnerable seed fixtures detected | 25% |
-| **Precision** | Percentage of reported findings that correspond to true vulnerabilities | 25% |
-| **Semantic Robustness** | Detection stability under semantic paraphrasing and lexical synonyms | 15% |
-| **Structural Robustness** | Detection stability when instructions are split across sections/lines | 10% |
-| **Cross-File Robustness** | Detection stability when capability chains span separate files | 10% |
-| **Obfuscation Robustness** | Detection stability under code aliasing, indirection, and encoding | 10% |
-| **Negative-Context Safety** | False-positive avoidance when suspicious terms appear in defensive context | 5% |
+* `INCOMPLETE` if more than 20% of runs produced no verdict (crash, timeout, unparsable output,
+  binary missing), or if recall or specificity has no evidence at all.
+  Runs without a verdict are never counted as detections or as passes.
+* **Confidence `low`** if fewer than 30 scored runs exist or any metric has `n < 10`. `rantanplan gate`
+  rejects low-confidence grades unless `--allow-low-confidence` is passed.
 
----
+## Calibration
 
-## 2. Letter Grade Grading Scale
-
-| Grade | Overall Score Range | Description |
-| :---: | :---: | :--- |
-| **A+** | 97.0 – 100.0 | Outstanding adversarial robustness across all mutation dimensions |
-| **A**  | 90.0 – 96.9  | Strong security assurance with minor blind spots under edge obfuscation |
-| **B**  | 80.0 – 89.9  | Moderate robustness; vulnerable to cross-file or semantic paraphrasing |
-| **C**  | 70.0 – 79.9  | Weak adversarial resistance; fails on basic keyword substitutions |
-| **F**  | 0.0 – 69.9   | Unreliable control; high false-negative or false-positive rate |
-
----
-
-## 3. Reproducibility Guarantee
-
-Every score output must contain complete reproducibility metadata:
-- Random Seed
-- Target Binary Version & Hash Digest
-- Rantanplan Corpus Version & Seed Digest
-- Mutator Configuration & Depth Limits
-- Operating System & Execution Environment
-
+`rantanplan suite offline-core` scores four built-in targets and fails if the scale does not order
+them sensibly: `mock-blind` (flags nothing) < `mock-naive` (keywords) <= `mock-strict`, and
+`mock-paranoid` (flags every suspicious word) < `mock-strict`. See
+[REFERENCE_BENCHMARK.md](REFERENCE_BENCHMARK.md). `mock-strict` uses the oracle's own reference
+semantics, so it is a ceiling check, not evidence about any real scanner.

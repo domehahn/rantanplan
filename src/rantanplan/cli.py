@@ -3,7 +3,6 @@ Rantanplan Typer + Rich CLI entrypoint implementation for Universal Scanner Assu
 """
 
 import os
-import sys
 
 import typer
 from rich.console import Console
@@ -11,6 +10,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from rantanplan.capability_inventory import CapabilityInventoryEngine
+from rantanplan.cli_assurance import register as register_assurance
 from rantanplan.corpus import load_corpus
 from rantanplan.differential import DifferentialEngine
 from rantanplan.ecosystem import get_all_target_adapters, verify_ecosystem
@@ -99,7 +99,9 @@ def verify_ecosystem_cmd():
 def list_items(target: str = typer.Argument("cases", help="What to list: scanners, cases, capabilities")):
     """Lists registered scanners, clean-room test cases, or canonical capabilities."""
     if target == "scanners":
-        adapters = get_all_target_adapters()
+        from rantanplan.registry import all_targets
+
+        adapters = list(all_targets().values())
         table = Table(title="Registered Target Adapters")
         table.add_column("Target Name", style="cyan")
         table.add_column("Capabilities Count")
@@ -125,13 +127,6 @@ def list_items(target: str = typer.Argument("cases", help="What to list: scanner
 
 
 @app.command()
-def verify_ground_truth():
-    """Validates all test cases against independent ground-truth schema constraints."""
-    cases = load_corpus()
-    console.print(f"[bold green]Successfully verified {len(cases)} clean-room test cases against ground-truth schemas.[/bold green]")
-
-
-@app.command()
 def gaps():
     """Analyses capability matrix coverage gaps across target scanners."""
     adapters = get_all_target_adapters()
@@ -153,48 +148,6 @@ def gaps():
                 table.add_row(s_name, cap, "[bold yellow]UNMAPPED[/bold yellow]", f"Create clean-room test case for {cap}")
 
     console.print(table)
-
-
-@app.command()
-def hunt(
-    target: str = typer.Option("skil", help="Target adapter name"),
-    mode: str = typer.Option("false-negative", help="Hunt mode: false-negative or false-positive"),
-    iterations: int = typer.Option(5, help="Number of mutation search iterations"),
-):
-    """Hunts for scanner evasions or false positives using adversarial mutators."""
-    from rantanplan.search import SearchEngine
-
-    adapters = {a.identity().name: a for a in get_all_target_adapters()}
-    adapter = adapters.get(target, adapters["skil"])
-    engine = SearchEngine(adapter)
-    cases = load_corpus()
-    profile = RunProfile(profile_type=TargetProfile.MOCK)
-
-    console.print(f"[yellow]Hunting {mode} evasions on target '{target}' for {iterations} iterations...[/yellow]")
-    if mode == "false-negative":
-        results = engine.hunt_false_negative(cases[0], profile, max_iterations=iterations)
-    else:
-        results = engine.hunt_false_positive(cases[0], profile, max_iterations=iterations)
-
-    console.print(f"[bold green]Hunt completed. Discovered {len(results)} candidate evasions/false-positives.[/bold green]")
-
-
-@app.command()
-def minimize(
-    target: str = typer.Option("skil", help="Target adapter name"),
-):
-    """Delta-debugs a test case file down to minimal triggering content."""
-    from rantanplan.search import SearchEngine
-
-    adapters = {a.identity().name: a for a in get_all_target_adapters()}
-    adapter = adapters.get(target, adapters["skil"])
-    engine = SearchEngine(adapter)
-    cases = load_corpus()
-    profile = RunProfile(profile_type=TargetProfile.MOCK)
-
-    console.print(f"[yellow]Minimizing test case '{cases[0].id}' on target '{target}'...[/yellow]")
-    min_case = engine.minimize(cases[0], profile)
-    console.print(f"[bold green]Minimization complete. Reduced lines to {len(min_case.files[0]['content'].splitlines())} lines.[/bold green]")
 
 
 @app.command()
@@ -276,30 +229,7 @@ def demo():
     console.print(f"\n[bold green]Interactive HTML report generated at: {report_file}[/bold green]")
 
 
-@app.command()
-def suite(name: str = typer.Argument("offline-core", help="Suite name (offline-core, static, garak, runtime)")):
-    """Executes a defined benchmark test suite."""
-    console.print(f"[bold blue]Executing Rantanplan Suite: {name}...[/bold blue]")
-    demo()
-
-
-@app.command()
-def benchmark():
-    """Runs full benchmark and performance suite."""
-    demo()
-
-
-@app.command()
-def gate(
-    min_coverage: float = typer.Option(0.0, help="Minimum coverage percentage requirement for CI gate"),
-):
-    """Evaluates CI security gate exit code based on target verification criteria."""
-    res = verify_ecosystem()
-    cov = res["coverage_percentage"]
-    if cov < min_coverage:
-        console.print(f"[bold red]CI Gate Failed: Coverage {cov}% < Minimum required {min_coverage}%[/bold red]")
-        sys.exit(1)
-    console.print(f"[bold green]CI Gate Passed: Coverage {cov}% >= Minimum required {min_coverage}%[/bold green]")
+register_assurance(app, console)
 
 
 if __name__ == "__main__":

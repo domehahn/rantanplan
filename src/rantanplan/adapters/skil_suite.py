@@ -18,6 +18,7 @@ Provides dedicated adapters for all SKIL subcommands:
 
 import json
 
+from rantanplan.adapters._common import incomplete_result, unusable_report
 from rantanplan.execution import (
     ExecutionSandbox,
     binary_exists,
@@ -89,6 +90,10 @@ class BaseSKILAdapter:
         findings: list[NormalizedFinding] = []
         is_vulnerable = False
 
+        unusable = unusable_report(case, execution, self.identity().name, self._version)
+        if unusable is not None:
+            return unusable
+
         if execution.stdout.strip():
             try:
                 data = json.loads(execution.stdout)
@@ -105,8 +110,10 @@ class BaseSKILAdapter:
                         )
                     )
             except json.JSONDecodeError:
-                if execution.exit_code != 0:
-                    is_vulnerable = True
+                return incomplete_result(
+                    case, execution, self.identity().name, self._version,
+                    ExecutionStatus.PARSER_ERROR, "stdout is not valid JSON",
+                )
 
         expected_malicious = case.ground_truth.get("malicious", False)
 

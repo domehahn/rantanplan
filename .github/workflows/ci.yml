@@ -31,13 +31,27 @@ jobs:
         run: |
           uv run ruff check .
 
-      - name: Run Pytest Test Suite
+      - name: Run Pytest Test Suite (coverage gate)
         run: |
-          uv run pytest -v
+          uv run pytest -v --cov=rantanplan --cov-report=term --cov-fail-under=90
 
-      - name: Run Ground-Truth Schema Verification
+      - name: Verify corpus labels against reference semantics
         run: |
           uv run rantanplan verify-ground-truth
+
+      - name: Check generated corpus is up to date
+        run: |
+          uv run rantanplan corpus build --out corpus
+          git diff --exit-code -- corpus
+
+      - name: Calibrate the scoring scale (blind < naive < strict)
+        run: |
+          uv run rantanplan suite offline-core
+
+      - name: Check reference benchmark is up to date
+        run: |
+          uv run rantanplan benchmark --output docs/REFERENCE_BENCHMARK.md
+          git diff --exit-code -- docs/REFERENCE_BENCHMARK.md
 
       - name: Run System & Scanner Doctor
         run: |

@@ -18,28 +18,46 @@ def get_default_cases_dir() -> Path:
     return base / "cases"
 
 
-def load_corpus(cases_dir: Path | None = None) -> list[TestCase]:
-    """Loads all test cases from the cases/ directory (YAML or JSON)."""
-    target_dir = cases_dir or get_default_cases_dir()
+def get_default_corpus_dirs() -> list[Path]:
+    """``cases/`` (hand-written, multi-domain) and ``corpus/`` (generated mutation seed corpus)."""
+    base = Path(__file__).resolve().parent.parent.parent
+    return [base / "cases", base / "corpus"]
+
+
+def load_corpus(cases_dir: Path | list[Path] | None = None) -> list[TestCase]:
+    """Loads test cases (YAML or JSON) in deterministic order; later duplicates of an id are skipped."""
+    if cases_dir is None:
+        dirs = get_default_corpus_dirs()
+    elif isinstance(cases_dir, Path):
+        dirs = [cases_dir]
+    else:
+        dirs = list(cases_dir)
+
     cases: list[TestCase] = []
+    seen: set[str] = set()
+    found_dir = False
 
-    if not target_dir.exists():
-        return get_builtin_cases()
-
-    for path in target_dir.rglob("*"):
-        if path.suffix.lower() in (".yaml", ".yml", ".json"):
+    for target_dir in dirs:
+        if not target_dir.exists():
+            continue
+        found_dir = True
+        for path in sorted(target_dir.rglob("*")):
+            if path.suffix.lower() not in (".yaml", ".yml", ".json"):
+                continue
             try:
-                with open(path, "r", encoding="utf-8") as f:
-                    if path.suffix.lower() == ".json":
-                        data = json.load(f)
-                    else:
-                        data = yaml.safe_load(f)
-                    if isinstance(data, dict) and "id" in data:
-                        cases.append(RantanplanTestCase(**data))
+                with open(path, encoding="utf-8") as f:
+                    data = json.load(f) if path.suffix.lower() == ".json" else yaml.safe_load(f)
+                if isinstance(data, dict) and "id" in data:
+                    case = RantanplanTestCase(**data)
+                    if case.id in seen:
+                        logger.warning("Duplicate case id %s in %s ignored", case.id, path)
+                        continue
+                    seen.add(case.id)
+                    cases.append(case)
             except (OSError, ValueError, TypeError, yaml.YAMLError) as exc:
                 logger.warning("Skipping unreadable corpus file %s: %s", path, exc)
 
-    if not cases:
+    if not found_dir or not cases:
         return get_builtin_cases()
 
     return cases

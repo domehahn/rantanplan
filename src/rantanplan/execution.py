@@ -5,6 +5,7 @@ Execution sandbox engine with dynamic binary resolution and real version discove
 import hashlib
 import os
 import shutil
+import signal
 import subprocess
 import tempfile
 import time
@@ -78,6 +79,14 @@ def compute_file_sha256(file_path: str) -> str | None:
         return None
 
 
+def _kill_process_group(process: subprocess.Popen) -> None:
+    """Kill the target and everything it spawned; fall back to the single process."""
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError, OSError):
+        process.kill()
+
+
 class SandboxRunner:
     """Executes subprocess commands without shell=True, applying environment sanitization and resource limits."""
 
@@ -132,6 +141,7 @@ class SandboxRunner:
                 stderr=subprocess.PIPE,
                 text=True,
                 shell=False,  # SAFETY: Never execute via shell wrapper
+                start_new_session=True,  # own process group so a timeout can kill grandchildren too
             )
 
             try:
@@ -141,7 +151,7 @@ class SandboxRunner:
                     exec_status = ExecutionStatus.TARGET_ERROR
             except subprocess.TimeoutExpired:
                 timed_out = True
-                process.kill()
+                _kill_process_group(process)
                 stdout_str, stderr_str = process.communicate()
                 exit_code = -1
                 exec_status = ExecutionStatus.TIMEOUT

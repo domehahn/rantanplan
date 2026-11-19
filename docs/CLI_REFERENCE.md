@@ -14,13 +14,20 @@ Run `uv run rantanplan --help` or `uv run rantanplan <command> --help` for the a
 | `verify-ecosystem-cmd` | Run the end-to-end ecosystem verification suite |
 | `inventory` | Discover and snapshot upstream capabilities of all scanners |
 | `gaps` | Analyse capability matrix coverage gaps across scanners |
-| `hunt --target T --mode false-negative\|false-positive --iterations N` | Hunt for evasions or false positives with adversarial mutators |
-| `minimize --target T` | Delta-debug a test case down to minimal triggering content |
-| `suite [offline-core\|static\|garak\|runtime]` | Execute a benchmark suite |
-| `demo` | Zero-cost, network-independent demo matrix across all scanners |
-| `benchmark` | Full benchmark and performance run |
-| `gate --min-coverage N` | CI gate exit code based on verification criteria |
-| `upstream check` | Upstream drift and compatibility monitoring |
+| `test scanner --target T [--corpus DIR] [--seed N] [--mutants-per-case N] [--mutators a,b] [--format F] [--output FILE]` | Score one target (`dashboard`, `json`, `markdown`, `html`) |
+| `compare --targets a,b [--format F]` | Score several targets on identical mutants |
+| `mutate --case ID [--seed N]` | Show all mutants of a case with the oracle verdict |
+| `hunt --target T --mode false-negative\|false-positive [--case ID] [--iterations N] [--seed N]` | Adaptive search with chained, oracle-checked mutations |
+| `minimize --target T --case ID` | ddmin reproducer that keeps target outcome and label |
+| `gate [--results FILE --min-grade B [--allow-low-confidence]] [--min-coverage N]` | CI gate (exit 1 on failure) |
+| `export regression --target T [--output DIR]` | Export every evasion found as a regression case |
+| `corpus build [--out DIR]` / `corpus list` | Regenerate / summarise the corpus |
+| `suite offline-core` | Calibration check of the scoring scale (exit 1 if mis-ordered) |
+| `benchmark [--output FILE]` | Regenerate `docs/REFERENCE_BENCHMARK.md` |
+| `demo` | Legacy mock-profile matrix across all adapters (not a measurement of real scanners) |
+| `upstream check` | Compare the two newest capability snapshots for drift |
+
+All randomness derives from `--seed` (default `42151`).
 
 ## Binary discovery
 

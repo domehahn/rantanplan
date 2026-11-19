@@ -106,6 +106,20 @@ class ManifestScannerAdapter(TargetAdapter):
         is_vulnerable = False
 
         finding_exits = self.manifest.get("exit_codes", {}).get("finding", [1])
+        clean_exits = self.manifest.get("exit_codes", {}).get("clean", [0])
+        if execution.exit_code not in (*finding_exits, *clean_exits):
+            # a crash / usage error is not a verdict
+            return RichNormalizedResult(
+                run_id=f"run-{self.name}",
+                case_id=case.id,
+                target_name=self.name,
+                target_version="1.0.0",
+                execution_status=ExecutionStatus.TARGET_ERROR,
+                outcome=AssuranceOutcome.INCOMPLETE,
+                duration_ms=execution.duration_ms,
+                exit_code=execution.exit_code,
+                raw_report=f"{execution.stdout}\n{execution.stderr}".strip(),
+            )
         if execution.exit_code in finding_exits:
             is_vulnerable = True
 
