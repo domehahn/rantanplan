@@ -21,12 +21,12 @@ classifiers = [
     "Topic :: Software Development :: Testing",
 ]
 dependencies = [
-    "typer>=0.12.0",
-    "rich>=13.7.0",
-    "pydantic>=2.7.0",
-    "pyyaml>=6.0.1",
-    "jinja2>=3.1.4",
-    "jsonschema>=4.22.0",
+    "typer>=0.29.1",
+    "rich>=15.0.0",
+    "pydantic>=2.14.3",
+    "pyyaml>=6.0.3",
+    "jinja2>=3.1.6",
+    "jsonschema>=4.26.0",
 ]
 
 [project.urls]
@@ -36,10 +36,10 @@ Changelog = "https://github.com/domehahn/rantanplan/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.2.0",
-    "pytest-cov>=5.0.0",
-    "ruff>=0.4.0",
-    "mypy>=1.10.0",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.5",
+    "mypy>=2.4.1",
 ]
 
 [project.scripts]
