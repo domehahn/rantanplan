@@ -29,7 +29,7 @@ jobs:
           go build -o "$RUNNER_TEMP/bin/skil" ./cmd/skil
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
-      - uses: astral-sh/setup-uv@v10.3.3
+      - uses: astral-sh/setup-uv@v10.4.0
 
       - uses: actions/setup-python@v7
         with:
