@@ -21,10 +21,10 @@ classifiers = [
     "Topic :: Software Development :: Testing",
 ]
 dependencies = [
-    "typer>=0.29.1",
+    "typer>=0.29.2",
     "rich>=15.0.0",
-    "pydantic>=2.14.3",
-    "pyyaml>=6.0.3",
+    "pydantic>=2.14.4",
+    "pyyaml>=6.0.4",
     "jinja2>=3.1.6",
     "jsonschema>=4.26.0",
 ]
@@ -38,7 +38,7 @@ Changelog = "https://github.com/domehahn/rantanplan/blob/main/CHANGELOG.md"
 dev = [
     "pytest>=9.2.0",
     "pytest-cov>=7.1.0",
-    "ruff>=0.17.5",
+    "ruff>=0.17.6",
     "mypy>=2.4.1",
 ]
 
